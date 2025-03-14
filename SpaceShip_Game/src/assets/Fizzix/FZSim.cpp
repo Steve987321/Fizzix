@@ -157,17 +157,22 @@ namespace fz
                 }
             }
         }
+
+        for (Spring& spr : springs)
+        {
+            spr.Update(dt);
+        }
     }
 
     void Sim::Resolve(Rigidbody& a, Rigidbody& b, const Toad::Vec2f& contact, const Toad::Vec2f& normal, float penetration)
     {
-        float totalMass = a.mass + b.mass;
+        float mass_sum = a.mass + b.mass;
 
-        if (abs(totalMass) <= FLT_EPSILON)
+        if (abs(mass_sum) <= FLT_EPSILON)
             return;
 
-        float move_a = (b.mass / totalMass) * penetration;
-        float move_b = (a.mass / totalMass) * penetration;
+        float move_a = (b.mass / mass_sum) * penetration;
+        float move_b = (a.mass / mass_sum) * penetration;
 
         if (!a.is_static)
             a.center -= normal * move_a;
@@ -178,13 +183,13 @@ namespace fz
         Toad::Vec2f diff_b = contact - b.center;
 
         Toad::Vec2f rel_vel = b.velocity - a.velocity;
-        float vel_rel_normal = dot(rel_vel, normal);
+        float vel_along_normal = dot(rel_vel, normal);
 
-        if (vel_rel_normal > 0) 
+        if (vel_along_normal > 0) 
             return; 
 
         float e = (a.restitution + b.restitution) / 2.f;
-        float j = -(1.f + e) * vel_rel_normal / (1.f / a.mass + 1.f / b.mass);
+        float j = -(1.f + e) * vel_along_normal / (1.f / a.mass + 1.f / b.mass);
 
         Toad::Vec2f impulse = normal * j;
 
@@ -214,9 +219,9 @@ namespace fz
         {
             a.angular_velocity -= torque_a / a.moment_of_inertia;
             
-            float angular_velocity_factor = 10.f;
+            const float angular_velocity_factor = 10.f;
             Toad::Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-            float grip = penetration * a.friction;
+            float grip = penetration * ((a.friction + b.friction) / 2.f);
             a.velocity -= vel_rot_diff * grip;
         }
         if (!b.is_static)

@@ -8,8 +8,24 @@ using namespace Toad;
 
 static fz::Sim sim;
 static Vec2f player_vel;
+static bool add_potential_spring = false;
+static bool mouse_released = false;
+static bool mouse_pressed = false;
+static bool show_spring_add_popup = false;
+static fz::Spring potential_spring {};
 
-void OnKeyPress(Keyboard::Key key)
+static void OnMousePress(sf::Mouse::Button mouse)
+{
+	if (mouse == sf::Mouse::Left)
+		mouse_pressed = true; 
+}
+
+static void OnMouseRelease(sf::Mouse::Button mouse)
+{
+	if (mouse == sf::Mouse::Left)
+		mouse_released = true;
+}
+static void OnKeyPress(Keyboard::Key key)
 {
 	if (key == Keyboard::D)
 	{
@@ -20,7 +36,7 @@ void OnKeyPress(Keyboard::Key key)
 		player_vel.x = - 10.f;
 	}
 }
-void OnKeyRelease(Keyboard::Key key)
+static void OnKeyRelease(Keyboard::Key key)
 {
 	if (key == Keyboard::D)
 	{
@@ -44,10 +60,15 @@ void Sim::OnStart(Object* obj)
 
 	sim = fz::Sim();
 
+	show_spring_add_popup = false;
+	mouse_released = false;
+	mouse_pressed = false;
+	add_potential_spring = false;
+
 	Toad::DrawingCanvas::ClearVertices();
 
 	std::vector<Toad::Vec2f> player = {{-50, -30}, {-30, -30}, {-30, 0}, {-50, -30}, {-30, 0},  {-50, 0}};
-	// std::vector<Toad::Vec2f> square1 = { {-10.f, -10.f}, {10.f, -10.f}, {10.f, 10.f}};
+	std::vector<Toad::Vec2f> square1 = { {-10.f, -10.f}, {10.f, -10.f}, {10.f, 10.f}};
 	std::vector<Toad::Vec2f> floor_v = {{-100.f, 20.f}, {50.f, 70.f}, {600.f, 20.f}};
 
 	fz::Polygon sim_player(player);
@@ -55,22 +76,24 @@ void Sim::OnStart(Object* obj)
 	sim_player.rb.mass = 10.f;
 	sim_player.rb.restitution = 0.5f;
 
-	// fz::Polygon p1(square1);
-	// p1.rb.velocity = Vec2f{0, 10.f};
+	fz::Polygon p1(square1);
+	p1.rb.velocity = Vec2f{0, 10.f};
 
 	fz::Polygon floor(floor_v);
 	floor.rb.is_static = true;
 
 	sim.polygons.emplace_back(sim_player);
-	// sim.polygons.emplace_back(p1);
+	sim.polygons.emplace_back(p1);
 	sim.polygons.emplace_back(floor);
 
 	Toad::DrawingCanvas::AddVertexArray(player.size());
-	// Toad::DrawingCanvas::AddVertexArray(square1.size());
+	Toad::DrawingCanvas::AddVertexArray(square1.size());
 	Toad::DrawingCanvas::AddVertexArray(floor_v.size());
 
 	Input::AddKeyPressCallback(OnKeyPress);
 	Input::AddKeyReleaseCallback(OnKeyRelease);
+	Input::AddMousePressCallback(OnMousePress);
+	Input::AddMouseReleaseCallback(OnMouseRelease);
 }
 
 void Sim::OnUpdate(Object* obj)
@@ -79,9 +102,7 @@ void Sim::OnUpdate(Object* obj)
 
 	Camera* cam = Camera::GetActiveCamera();
 	if (cam)
-	{
 		cam->SetPosition(sim.polygons[0].rb.center);
-	}
 
 	sim.polygons[0].rb.velocity += player_vel * Time::GetDeltaTime();
 
@@ -91,10 +112,24 @@ void Sim::OnUpdate(Object* obj)
 	{
 		if (sim.polygons[i].ContainsPoint(world_mouse))
 		{
+			LOGDEBUGF("p{} r{} a{}", mouse_pressed, mouse_released, add_potential_spring);
 			// do some 
-
+			if (mouse_pressed)
+			{
+				add_potential_spring = true;
+				potential_spring.start_rb = &sim.polygons[i].rb;
+				potential_spring.start_rel = world_mouse - sim.polygons[i].rb.center;
+			}
+			else if (add_potential_spring && mouse_released)
+			{
+				add_potential_spring = false;
+				potential_spring.end_rb = &sim.polygons[i].rb;
+				potential_spring.end_rel = world_mouse - sim.polygons[i].rb.center;
+				sim.springs.push_back(potential_spring);
+			}
 		}
 		DrawingCanvas::DrawArrow(sim.polygons[i].rb.center, sim.polygons[i].rb.velocity, 1.f);
+		
 		for (int j = 0; j < sim.polygons[i].vertices.size(); j++)
 		{
 			sf::Vertex v;
@@ -103,6 +138,19 @@ void Sim::OnUpdate(Object* obj)
 			DrawingCanvas::ModifyVertex(i, j, v);
 		}
 	}
+
+	for (const fz::Spring& spr : sim.springs)
+	{
+		Vec2f a = spr.start_rb->center + spr.start_rel;
+		Vec2f b = spr.end_rb->center + spr.end_rel;
+		DrawingCanvas::DrawArrow(a, (b - a), 1.f);
+	}
+
+	if (add_potential_spring && mouse_released)
+		add_potential_spring = false;
+
+	mouse_pressed = false;
+	mouse_released = false;
 }
 
 

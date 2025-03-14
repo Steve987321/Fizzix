@@ -2,6 +2,7 @@
 
 #include "FZPolygon.h"
 #include "FZRigidbody.h"
+#include "FZSpring.h"
 
 namespace fz
 {
@@ -13,5 +14,6 @@ namespace fz
 
         Toad::Vec2f gravity{0.f, 9.8f};
         std::vector<Polygon> polygons {};
+        std::vector<Spring> springs;
     };
 }

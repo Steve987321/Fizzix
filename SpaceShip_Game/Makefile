@@ -90,6 +90,7 @@ OBJECTS :=
 GENERATED += $(OBJDIR)/FZPolygon.o
 GENERATED += $(OBJDIR)/FZRigidbody.o
 GENERATED += $(OBJDIR)/FZSim.o
+GENERATED += $(OBJDIR)/FZSpring.o
 GENERATED += $(OBJDIR)/Framework.o
 GENERATED += $(OBJDIR)/Game.o
 GENERATED += $(OBJDIR)/PhysGun.o
@@ -106,6 +107,7 @@ GENERATED += $(OBJDIR)/imgui_widgets.o
 OBJECTS += $(OBJDIR)/FZPolygon.o
 OBJECTS += $(OBJDIR)/FZRigidbody.o
 OBJECTS += $(OBJDIR)/FZSim.o
+OBJECTS += $(OBJDIR)/FZSpring.o
 OBJECTS += $(OBJDIR)/Framework.o
 OBJECTS += $(OBJDIR)/Game.o
 OBJECTS += $(OBJDIR)/PhysGun.o
@@ -207,6 +209,9 @@ $(OBJDIR)/FZRigidbody.o: src/assets/Fizzix/FZRigidbody.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/FZSim.o: src/assets/Fizzix/FZSim.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FZSpring.o: src/assets/Fizzix/FZSpring.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/PhysGun.o: src/assets/PhysGameObj/PhysGun.cpp
