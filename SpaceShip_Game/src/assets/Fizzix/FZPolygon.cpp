@@ -75,11 +75,28 @@ namespace fz
             cy += (vertices[i].y + vertices[j].y) * c;
         }
 
-        area *= 0.5f;
+        area /= 2.f;
+
         if (std::abs(area) < 1e-6)
             return Toad::Vec2f(0, 0); 
 
         return Toad::Vec2f(cx / (6 * area), cy / (6 * area));
     }
 
+    bool Polygon::ContainsPoint(const Toad::Vec2f &point)
+    {
+        int n = vertices.size();
+        bool inside = false;
+        for (int i = 0, j = n - 1; i < n; j = i++) 
+        {
+            if ((vertices[i].y > point.y) != (vertices[j].y > point.y))
+             {
+                double x_intersect = (vertices[j].x - vertices[i].x) * (point.y - vertices[i].y) /
+                                     (vertices[j].y - vertices[i].y) + vertices[i].x;
+                if (point.x < x_intersect)
+                    inside = !inside;
+            }
+        }
+        return inside;
+    }
 }

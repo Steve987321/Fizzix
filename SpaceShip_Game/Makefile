@@ -87,30 +87,32 @@ endif
 GENERATED :=
 OBJECTS :=
 
-GENERATED += $(OBJDIR)/Framework.o
-GENERATED += $(OBJDIR)/Game.o
-GENERATED += $(OBJDIR)/ScriptRegister.o
-GENERATED += $(OBJDIR)/TestScript.o
-GENERATED += $(OBJDIR)/Thruster.o
-GENERATED += $(OBJDIR)/Sim.o
+GENERATED += $(OBJDIR)/FZPolygon.o
 GENERATED += $(OBJDIR)/FZRigidbody.o
 GENERATED += $(OBJDIR)/FZSim.o
-GENERATED += $(OBJDIR)/FZRigidbody.o
+GENERATED += $(OBJDIR)/Framework.o
+GENERATED += $(OBJDIR)/Game.o
+GENERATED += $(OBJDIR)/PhysGun.o
+GENERATED += $(OBJDIR)/PhysObj.o
+GENERATED += $(OBJDIR)/ScriptRegister.o
+GENERATED += $(OBJDIR)/Sim.o
+GENERATED += $(OBJDIR)/Thruster.o
 GENERATED += $(OBJDIR)/imgui-SFML.o
 GENERATED += $(OBJDIR)/imgui.o
 GENERATED += $(OBJDIR)/imgui_demo.o
 GENERATED += $(OBJDIR)/imgui_draw.o
 GENERATED += $(OBJDIR)/imgui_tables.o
 GENERATED += $(OBJDIR)/imgui_widgets.o
-OBJECTS += $(OBJDIR)/Framework.o
-OBJECTS += $(OBJDIR)/Game.o
-OBJECTS += $(OBJDIR)/ScriptRegister.o
-OBJECTS += $(OBJDIR)/TestScript.o
-OBJECTS += $(OBJDIR)/Thruster.o
-OBJECTS += $(OBJDIR)/Sim.o
+OBJECTS += $(OBJDIR)/FZPolygon.o
 OBJECTS += $(OBJDIR)/FZRigidbody.o
 OBJECTS += $(OBJDIR)/FZSim.o
-OBJECTS += $(OBJDIR)/FZPolygon.o
+OBJECTS += $(OBJDIR)/Framework.o
+OBJECTS += $(OBJDIR)/Game.o
+OBJECTS += $(OBJDIR)/PhysGun.o
+OBJECTS += $(OBJDIR)/PhysObj.o
+OBJECTS += $(OBJDIR)/ScriptRegister.o
+OBJECTS += $(OBJDIR)/Sim.o
+OBJECTS += $(OBJDIR)/Thruster.o
 OBJECTS += $(OBJDIR)/imgui-SFML.o
 OBJECTS += $(OBJDIR)/imgui.o
 OBJECTS += $(OBJDIR)/imgui_demo.o
@@ -198,10 +200,25 @@ $(OBJDIR)/imgui_widgets.o: ../vendor/imgui/imgui_widgets.cpp
 $(OBJDIR)/imgui-SFML.o: ../vendor/sfml-imgui/imgui-SFML.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FZPolygon.o: src/assets/Fizzix/FZPolygon.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FZRigidbody.o: src/assets/Fizzix/FZRigidbody.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FZSim.o: src/assets/Fizzix/FZSim.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/PhysGun.o: src/assets/PhysGameObj/PhysGun.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/PhysObj.o: src/assets/PhysGameObj/PhysObj.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Framework.o: src/assets/framework/Framework.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/TestScript.o: src/assets/scripts/TestScript.cpp
+$(OBJDIR)/Sim.o: src/assets/scripts/Sim.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Thruster.o: src/assets/scripts/Thruster.cpp
@@ -211,18 +228,6 @@ $(OBJDIR)/Game.o: src/game_core/Game.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/ScriptRegister.o: src/game_core/ScriptRegister.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/FZRigidbody.o: src/assets/Fizzix/FZRigidbody.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/FZSim.o: src/assets/Fizzix/FZSim.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/FZPolygon.o: src/assets/Fizzix/FZPolygon.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Sim.o: src/assets/scripts/Sim.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 

@@ -29,6 +29,9 @@ namespace fz
         Toad::Vec2f velocity_average {0, 0};
         float angular_velocity_average = 0;
 
+        float friction = 0.f;
+
+        float slide = 0.f;
     private:
         std::deque<HistoryData> velocities {};
         float time = 0;

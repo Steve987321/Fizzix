@@ -1,10 +1,6 @@
 #include "ScriptRegister.h"
 #include "engine/Engine.h"
 
-#include "scripts/TestScript.h"
-
-// tools 
-#include "engine/default_scripts/AnimationController.h"
 #include "assets/scripts/Thruster.h"
 #include "assets/scripts/Sim.h"
 
@@ -17,8 +13,6 @@ void register_scripts()
 {
 	scripts.clear();
 
-	SCRIPT_REGISTER(TestScript);
-	SCRIPT_REGISTER(AnimationController);
 	SCRIPT_REGISTER(Thruster);
 	SCRIPT_REGISTER(Sim);
 }

@@ -148,7 +148,7 @@ namespace fz
                 DrawText("Collision: {}", collide);
                 DrawText("Penetration: {}", penetration);
 
-                Toad::DrawingCanvas::DrawArrow(contact, normal, 0.1f);
+                Toad::DrawingCanvas::DrawArrow(contact, normal * 10.f, 0.5f);
 
                 if (collide) 
                 {
@@ -166,40 +166,62 @@ namespace fz
         if (abs(totalMass) <= FLT_EPSILON)
             return;
 
-        float moveA = (b.mass / totalMass) * penetration;
-        float moveB = (a.mass / totalMass) * penetration;
+        float move_a = (b.mass / totalMass) * penetration;
+        float move_b = (a.mass / totalMass) * penetration;
 
         if (!a.is_static)
-            a.center -= normal * moveA;
+            a.center -= normal * move_a;
         if (!b.is_static)
-            b.center += normal * moveB;
+            b.center += normal * move_b;
 
         Toad::Vec2f diff_a = contact - a.center;
         Toad::Vec2f diff_b = contact - b.center;
 
-        Toad::Vec2f rel_vel =  b.velocity - a.velocity;
+        Toad::Vec2f rel_vel = b.velocity - a.velocity;
         float vel_rel_normal = dot(rel_vel, normal);
 
         if (vel_rel_normal > 0) 
             return; 
 
-        float e = a.restitution + b.restitution / 2.f;
-        float j = -(1 + e) * vel_rel_normal / (1.f / a.mass + 1.f / b.mass);
+        float e = (a.restitution + b.restitution) / 2.f;
+        float j = -(1.f + e) * vel_rel_normal / (1.f / a.mass + 1.f / b.mass);
 
         Toad::Vec2f impulse = normal * j;
+
         if (!a.is_static)
             a.velocity -= impulse / a.mass;
         if (!b.is_static)
             b.velocity += impulse / b.mass;
 
+        // detect sliding and use friction 
+        Toad::Vec2f perp = {-normal.y, normal.x};
+        
+        // Toad::DrawingCanvas::DrawArrow(contact, perp * 10, 1.f);
+        // a.slide = dot(perp, normalize(a.velocity));
+        // b.slide = dot(perp, normalize(b.velocity));
+        // // LOGDEBUGF("PERP: {},{} {},{} A {} B {}",perp.x, perp.y, a.velocity.x, a.velocity.y, vel_perp_a, vel_perp_b);
+        // a.velocity += a.slide * a.friction;
+        // b.velocity -= b.slide * b.friction;
+        // // DrawText("{} {}", a.slide, a.friction);
+
+        a.velocity *= a.friction;
+        b.velocity *= b.friction;
+
         float torque_a = cross(diff_a, impulse); 
         float torque_b = cross(diff_b, impulse);
 
         if (!a.is_static)
+        {
             a.angular_velocity -= torque_a / a.moment_of_inertia;
+            
+            float angular_velocity_factor = 10.f;
+            Toad::Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
+            float grip = penetration * a.friction;
+            a.velocity -= vel_rot_diff * grip;
+        }
         if (!b.is_static)
             b.angular_velocity += torque_b / b.moment_of_inertia;
-    
+
         if (penetration > 0.01f)
         {
             Toad::Vec2f correction = normal * (penetration * 0.3f);

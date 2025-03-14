@@ -20,6 +20,9 @@ namespace fz
         
         Toad::Vec2f CalcCenterOfMass();
 
+        // check whether the point is in the polygon
+        bool ContainsPoint(const Toad::Vec2f& point);
+
         Rigidbody rb;
     };
 }

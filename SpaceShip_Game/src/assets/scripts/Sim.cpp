@@ -7,6 +7,30 @@
 using namespace Toad;
 
 static fz::Sim sim;
+static Vec2f player_vel;
+
+void OnKeyPress(Keyboard::Key key)
+{
+	if (key == Keyboard::D)
+	{
+		player_vel.x = 10.f;
+	}
+	else if (key == Keyboard::A)
+	{
+		player_vel.x = - 10.f;
+	}
+}
+void OnKeyRelease(Keyboard::Key key)
+{
+	if (key == Keyboard::D)
+	{
+		player_vel.x = 0;
+	}
+	else if (key == Keyboard::A)
+	{
+		player_vel.x = 0;
+	}
+}
 
 void Sim::OnStart(Object* obj)
 {
@@ -16,47 +40,67 @@ void Sim::OnStart(Object* obj)
 	txt_to_draw.clear();
 #endif 
 
+	Mouse::capture_mouse = true;
+
 	sim = fz::Sim();
 
-	std::vector<Toad::Vec2f> square1 = { {-1.f, -1.f}, {1.f, -1.f}, {1.f, 1.f}};
-	// std::vector<Toad::Vec2f> square2 = square1;
-	std::vector<Toad::Vec2f> floor_v = {{-10.f, 2.f}, {5.f, 7.f}, {10.f, 2.f}};
-	// for (auto& v : square2)
-	// {
-	// 	v.x += 5.f;
-	// 	v.y += 5.f;
-	// }
+	Toad::DrawingCanvas::ClearVertices();
 
-	fz::Polygon p1(square1);
-	p1.rb.velocity = Vec2f{0, 10.f};
-	// fz::Polygon p2(square2);
+	std::vector<Toad::Vec2f> player = {{-50, -30}, {-30, -30}, {-30, 0}, {-50, -30}, {-30, 0},  {-50, 0}};
+	// std::vector<Toad::Vec2f> square1 = { {-10.f, -10.f}, {10.f, -10.f}, {10.f, 10.f}};
+	std::vector<Toad::Vec2f> floor_v = {{-100.f, 20.f}, {50.f, 70.f}, {600.f, 20.f}};
+
+	fz::Polygon sim_player(player);
+	sim_player.rb.angular_damping = 1.f;
+	sim_player.rb.mass = 10.f;
+	sim_player.rb.restitution = 0.5f;
+
+	// fz::Polygon p1(square1);
+	// p1.rb.velocity = Vec2f{0, 10.f};
+
 	fz::Polygon floor(floor_v);
-	// floor.rb.mass = FLT_MAX;
 	floor.rb.is_static = true;
-	// sim.gravity = {0, 0};
-	// p1.rb.velocity = {0, 5.f};
 
-	sim.polygons.emplace_back(p1);
-	// sim.polygons.emplace_back(p2);
+	sim.polygons.emplace_back(sim_player);
+	// sim.polygons.emplace_back(p1);
 	sim.polygons.emplace_back(floor);
 
-	Toad::DrawingCanvas::AddVertexArray(square1.size());
-	// Toad::DrawingCanvas::AddVertexArray(square2.size());
+	Toad::DrawingCanvas::AddVertexArray(player.size());
+	// Toad::DrawingCanvas::AddVertexArray(square1.size());
 	Toad::DrawingCanvas::AddVertexArray(floor_v.size());
+
+	Input::AddKeyPressCallback(OnKeyPress);
+	Input::AddKeyReleaseCallback(OnKeyRelease);
 }
 
 void Sim::OnUpdate(Object* obj)
 {
 	Script::OnUpdate(obj);
 
+	Camera* cam = Camera::GetActiveCamera();
+	if (cam)
+	{
+		cam->SetPosition(sim.polygons[0].rb.center);
+	}
+
+	sim.polygons[0].rb.velocity += player_vel * Time::GetDeltaTime();
+
+	Vec2f world_mouse = Screen::ScreenToWorld(Mouse::GetPosition(), *Camera::GetActiveCamera());
+	
 	for (int i = 0; i < sim.polygons.size(); i++)
 	{
+		if (sim.polygons[i].ContainsPoint(world_mouse))
+		{
+			// do some 
+
+		}
+		DrawingCanvas::DrawArrow(sim.polygons[i].rb.center, sim.polygons[i].rb.velocity, 1.f);
 		for (int j = 0; j < sim.polygons[i].vertices.size(); j++)
 		{
 			sf::Vertex v;
 			v.position = sim.polygons[i].vertices[j];
 			v.color = sf::Color::White;
-			Toad::DrawingCanvas::ModifyVertex(i, j, v);
+			DrawingCanvas::ModifyVertex(i, j, v);
 		}
 	}
 }
@@ -70,7 +114,7 @@ void Sim::OnFixedUpdate(Toad::Object* obj)
 
 void Sim::OnRender(Object* obj, sf::RenderTarget& target) 
 {
-	Toad::DrawingCanvas::DrawVertices(target, sf::Triangles);
+	DrawingCanvas::DrawVertices(target, sf::TrianglesStrip);
 }
 
 void Sim::ExposeVars()
@@ -124,27 +168,34 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 
 	for (int i = 0; i < sim.polygons.size(); i++)
 	{
-		fz::Rigidbody& rb = sim.polygons[i].rb;
-		
 		ImGui::PushID(i);
 
-		ImGui::DragFloat("Restitution", &rb.restitution);
-		
-		if (ImGui::DragFloat("Mass", &rb.mass))
-			if (rb.mass < 0.1f) 
-				rb.mass = 0.1f;
-		
-		ImGui::Text("Center(%.2f, %.2f) Resting(%d)", rb.center.x, rb.center.y, rb.resting);
-		ImGui::Text("Angular(%.2f) AngularAvg(%.2f)", rb.angular_velocity, rb.angular_velocity_average);
-		ImGui::Text("Vel(%.2f, %.2f) VelLength(%.3f) AbsVelAvg(%.2f, %.2f)", rb.velocity.x, rb.velocity.y, rb.velocity.Length(), rb.velocity_average.x, rb.velocity_average.y);
-		for (auto& f : sim.polygons[i].vertices)
+		if (ImGui::TreeNode("Object"))
 		{
-			ImGui::Text("%.1f, %.1f", f.x, f.y);
+			fz::Rigidbody& rb = sim.polygons[i].rb;
+
+			ImGui::DragFloat("Restitution", &rb.restitution);
+			
+			if (ImGui::DragFloat("Mass", &rb.mass))
+				if (rb.mass < 0.1f) 
+					rb.mass = 0.1f;
+			ImGui::SliderFloat("Friction", &rb.friction, 0.0f, 1.f);
+			
+			ImGui::Text("Center(%.2f, %.2f) Resting(%d) Slide(%.2f)", rb.center.x, rb.center.y, rb.resting, rb.slide);
+			ImGui::Text("Angular(%.2f) AngularAvg(%.2f)", rb.angular_velocity, rb.angular_velocity_average);
+			ImGui::Text("Vel(%.2f, %.2f) VelLength(%.3f) AbsVelAvg(%.2f, %.2f)", rb.velocity.x, rb.velocity.y, rb.velocity.Length(), rb.velocity_average.x, rb.velocity_average.y);
+			for (auto& f : sim.polygons[i].vertices)
+			{
+				ImGui::Text("%.1f, %.1f", f.x, f.y);
+			}
+			if (ImGui::Button("Rotate"))
+			{
+				sim.polygons[i].Rotate(angle);
+			}
+
+			ImGui::TreePop();
 		}
-		if (ImGui::Button("Rotate"))
-		{
-			sim.polygons[i].Rotate(angle);
-		}
+
 		ImGui::PopID();
 	}
 
@@ -152,11 +203,11 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 
 	auto draw = ImGui::GetForegroundDrawList();
 
-	draw->AddText({50.f, 20.f}, IM_COL32(255, 255, 0, 255), std::to_string(txt_to_draw.size()).c_str());
-	int i = 2;
+	draw->AddText({50.f, 120.f}, IM_COL32(255, 255, 0, 255), std::to_string(txt_to_draw.size()).c_str());
+	int i = 10;
 	for (const auto& [k, v] : txt_to_draw)
 	{	
-		draw->AddText({50.f, (float)i * 20.f}, IM_COL32_WHITE, v.c_str());
+		draw->AddText({50.f, (float)i * 20.f}, IM_COL32(255, 255, 0, 255), v.c_str());
 		i++;
 	}
 
