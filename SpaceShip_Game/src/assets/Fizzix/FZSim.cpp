@@ -209,8 +209,8 @@ namespace fz
         // b.velocity -= b.slide * b.friction;
         // // DrawText("{} {}", a.slide, a.friction);
 
-        a.velocity *= a.friction;
-        b.velocity *= b.friction;
+        // a.velocity *= a.friction;
+        // b.velocity *= b.friction;
 
         float torque_a = cross(diff_a, impulse); 
         float torque_b = cross(diff_b, impulse);
@@ -229,7 +229,7 @@ namespace fz
 
         if (penetration > 0.01f)
         {
-            Toad::Vec2f correction = normal * (penetration * 0.3f);
+            Toad::Vec2f correction = normal * (penetration * 0.5f);
             DrawText("CORRECTING: {} {}", correction.x, correction.y);
             
             // apply corection and also check for resting

@@ -11,10 +11,38 @@ namespace fz
 
         Toad::Vec2f start_pos = start_rb->center + start_rel;
         Toad::Vec2f end_pos = end_rb->center + end_rel;
-
-        float d = dist(start_pos, end_pos);
-        
         Toad::Vec2f dir_norm = normalize(end_pos - start_pos);
+
+        if (target_len != 0)
+        {
+            float d1 = dist(start_pos, end_pos);
+            float correct = target_len - d1;
+            Toad::Vec2f start_pos_a = start_rb->center + start_rel;
+            Toad::Vec2f end_pos_a = ((end_pos + Toad::Vec2f(-dir_norm * correct / 2.f)) + start_pos_a + dir_norm * correct / 2.f) / 2.f;
+            float d = dist(start_pos_a, end_pos_a);
+            // Toad::DrawingCanvas::DrawArrow(start_pos, dir_norm * 2.f, 1.f, Toad::Color::Blue);
+            Toad::DrawingCanvas::DrawArrow(end_pos_a, {0, 5.f}, 1.f, Toad::Color::Blue);
+            // Toad::DrawingCanvas::DrawText(end_pos_a, std::to_string(correct), 10);
+
+            if (correct > 0)
+            {
+                dir_norm *= -1;
+            }
+
+            start_rb->velocity += dir_norm * d * stiffness / start_rb->mass;
+            end_rb->velocity -= dir_norm * d * stiffness / end_rb->mass;
+            return; 
+        }
+        
+        float d = dist(start_pos, end_pos);
+
+        if (d < min_len)
+        {
+            float correct = min_len - d;
+            start_rb->center_correction -= dir_norm * correct / 2.f;
+            end_rb->center_correction += dir_norm * correct / 2.f;
+            d = min_len;
+        }
 
         start_rb->velocity += dir_norm * d * stiffness / start_rb->mass;
         end_rb->velocity -= dir_norm * d * stiffness / end_rb->mass;

@@ -1,6 +1,7 @@
 #include "framework/Framework.h"
 #include "Sim.h"
 #include "Fizzix/FZSim.h"
+#include "Fizzix/FZMath.h"
 
 #include "engine/Engine.h"
 
@@ -68,26 +69,28 @@ void Sim::OnStart(Object* obj)
 	Toad::DrawingCanvas::ClearVertices();
 
 	std::vector<Toad::Vec2f> player = {{-50, -30}, {-30, -30}, {-30, 0}, {-50, -30}, {-30, 0},  {-50, 0}};
-	std::vector<Toad::Vec2f> square1 = { {-10.f, -10.f}, {10.f, -10.f}, {10.f, 10.f}};
+	std::vector<Toad::Vec2f> triangle = { {-10.f, -10.f}, {10.f, -10.f}, {10.f, 10.f}};
 	std::vector<Toad::Vec2f> floor_v = {{-100.f, 20.f}, {50.f, 70.f}, {600.f, 20.f}};
 
 	fz::Polygon sim_player(player);
 	sim_player.rb.angular_damping = 1.f;
-	sim_player.rb.mass = 10.f;
+	sim_player.rb.mass = 1.f;
 	sim_player.rb.restitution = 0.5f;
 
-	fz::Polygon p1(square1);
+	fz::Polygon p1(triangle);
 	p1.rb.velocity = Vec2f{0, 10.f};
 
 	fz::Polygon floor(floor_v);
 	floor.rb.is_static = true;
 
 	sim.polygons.emplace_back(sim_player);
+	sim_player.Translate({30, 0});
+	sim.polygons.emplace_back(sim_player);
 	sim.polygons.emplace_back(p1);
 	sim.polygons.emplace_back(floor);
 
 	Toad::DrawingCanvas::AddVertexArray(player.size());
-	Toad::DrawingCanvas::AddVertexArray(square1.size());
+	Toad::DrawingCanvas::AddVertexArray(triangle.size());
 	Toad::DrawingCanvas::AddVertexArray(floor_v.size());
 
 	Input::AddKeyPressCallback(OnKeyPress);
@@ -112,7 +115,6 @@ void Sim::OnUpdate(Object* obj)
 	{
 		if (sim.polygons[i].ContainsPoint(world_mouse))
 		{
-			LOGDEBUGF("p{} r{} a{}", mouse_pressed, mouse_released, add_potential_spring);
 			// do some 
 			if (mouse_pressed)
 			{
@@ -122,10 +124,15 @@ void Sim::OnUpdate(Object* obj)
 			}
 			else if (add_potential_spring && mouse_released)
 			{
-				add_potential_spring = false;
-				potential_spring.end_rb = &sim.polygons[i].rb;
-				potential_spring.end_rel = world_mouse - sim.polygons[i].rb.center;
-				sim.springs.push_back(potential_spring);
+				if (potential_spring.start_rb != &sim.polygons[i].rb)
+				{
+					add_potential_spring = false;
+					potential_spring.end_rb = &sim.polygons[i].rb;
+					potential_spring.end_rel = world_mouse - sim.polygons[i].rb.center;
+					potential_spring.target_len = fz::dist(world_mouse, potential_spring.start_rb->center + potential_spring.start_rel);
+					potential_spring.min_len = fz::dist(world_mouse, potential_spring.start_rb->center + potential_spring.start_rel) / 3.f;
+					sim.springs.push_back(potential_spring);
+				}
 			}
 		}
 		DrawingCanvas::DrawArrow(sim.polygons[i].rb.center, sim.polygons[i].rb.velocity, 1.f);
@@ -188,14 +195,14 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
     {
         if (ImGui::Button("FORCE"))
         {
-            sim.polygons[0].rb.velocity += Vec2f{0, -100.f} * Time::GetDeltaTime();
+            sim.polygons[0].rb.velocity += Vec2f{0, -10.f};
         }
         if (ImGui::Button("ANGULARA"))
         {
-            sim.polygons[0].rb.angular_velocity += 10.f * Time::GetDeltaTime();
+            sim.polygons[0].rb.angular_velocity += 2.f;
         }if (ImGui::Button("ANGULARB"))
         {
-            sim.polygons[0].rb.angular_velocity -= 10.f * Time::GetDeltaTime();
+            sim.polygons[0].rb.angular_velocity -= 2.f;
         }
     }
 
@@ -214,6 +221,25 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 	if (ImGui::Button("Set time scale"))
 		Time::SetTimeScale(scale);
 
+	for (int i = 0; i < sim.springs.size(); i++)
+	{
+		ImGui::PushID(i);
+
+		if (ImGui::TreeNode("Spring"))
+		{
+			fz::Spring& spr = sim.springs[i];
+
+			ImGui::Text("attached A: (%.2f %.2f) B: (%.2f %.2f)", spr.start_rb->center.x,  spr.start_rb->center.y, spr.end_rb->center.x, spr.end_rb->center.y);
+			
+			ImGui::DragFloat("Stiffness", &spr.stiffness, 0.05f);
+			ImGui::DragFloat("Target len", &spr.target_len);
+			ImGui::DragFloat("Min len", &spr.min_len);
+			
+			ImGui::TreePop();
+		}
+
+		ImGui::PopID();
+	}
 	for (int i = 0; i < sim.polygons.size(); i++)
 	{
 		ImGui::PushID(i);
@@ -222,7 +248,8 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 		{
 			fz::Rigidbody& rb = sim.polygons[i].rb;
 
-			ImGui::DragFloat("Restitution", &rb.restitution);
+			ImGui::DragFloat("Moment of inertia", &rb.moment_of_inertia);
+			ImGui::SliderFloat("Restitution", &rb.restitution, 0.0f, 1.f);
 			
 			if (ImGui::DragFloat("Mass", &rb.mass))
 				if (rb.mass < 0.1f) 
