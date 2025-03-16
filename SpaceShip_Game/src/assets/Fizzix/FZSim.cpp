@@ -221,7 +221,8 @@ namespace fz
             
             const float angular_velocity_factor = 10.f;
             Toad::Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-            float grip = penetration * ((a.friction + b.friction) / 2.f);
+            float grip = std::max(penetration, 1.1f) * ((a.friction + b.friction) / 2.f);
+
             a.velocity -= vel_rot_diff * grip;
         }
         if (!b.is_static)
