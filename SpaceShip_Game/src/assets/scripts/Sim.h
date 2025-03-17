@@ -16,6 +16,11 @@ inline void DrawText(std::string_view txt, T... args)
 {}
 #endif 
 
+namespace fz
+{
+	class Sim;
+}
+
 class GAME_API Sim : public Toad::Script
 {
 public:
@@ -26,6 +31,8 @@ public:
 	void OnFixedUpdate(Toad::Object* obj) override;
 	void OnRender(Toad::Object* obj, sf::RenderTarget& target) override;
 	void ExposeVars() override;
+
+	static fz::Sim& GetSim();
 
 	bool pause_sim = false;
 
