@@ -7,10 +7,6 @@
 
 void VM::Init()
 {
-	// #todo #include brrr
-	IO::RegisterToVM(*this);
-	SimLib::RegisterToVM(*this);
-	
 	rel_reg_stack.push(0);
 
 	relative_register_index = 0;
@@ -279,8 +275,8 @@ void VM::OpJump(const VMRegister& a)
 void VM::OpJumpIfNotEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b)
 {
     bool v = false;
-    VMRegister* l = &registers[a.value.num];
-    VMRegister* r = &registers[b.value.num];
+    const VMRegister* l = GetValueReg(registers[a.value.num]);
+    const VMRegister* r = GetValueReg(registers[b.value.num]);
     
     assert(l && r);
     
@@ -291,6 +287,32 @@ void VM::OpJumpIfNotEqual(const VMRegister& jump, const VMRegister& a, const VMR
             break;
         case VMRegisterType::FLOAT:
             v = l->value.flt != r->value.flt;
+            break;
+        default:
+            break;
+    }
+
+    if (v)
+    {
+        instruction_pointer = labels.find(jump.value.num)->second;
+    }
+}
+
+void VM::OpJumpIfEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b)
+{
+    bool v = false;
+    const VMRegister* l = GetValueReg(registers[a.value.num]);
+    const VMRegister* r = GetValueReg(registers[b.value.num]);
+    
+    assert(l && r);
+    
+    switch(l->type)
+    {
+        case VMRegisterType::INT:
+            v = l->value.num == r->value.num;
+            break;
+        case VMRegisterType::FLOAT:
+            v = l->value.flt == r->value.flt;
             break;
         default:
             break;

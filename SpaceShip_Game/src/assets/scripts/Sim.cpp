@@ -68,6 +68,10 @@ void Sim::OnStart(Object* obj)
 	sim = fz::Sim();
 	vm = VM();
 
+	// use the sim lib library 
+	SimLib::RegisterToVM(vm);
+	IO::RegisterToVM(vm);
+
 	show_spring_add_popup = false;
 	mouse_released = false;
 	mouse_pressed = false;

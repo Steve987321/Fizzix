@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <stack>
 
+#include "Lib/CPPBinding.h"
 #include "Lib/IO.h"
 #include "Lib/SimLib.h"
 
@@ -107,8 +108,8 @@ public:
     void RegisterCPP(const VMRegister& lib);
 
 	// jump to ip or label depending on type
-	void OpJumpIfZero(const VMRegister& jump, const VMRegister& a);
 	void OpJumpIfNotEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b);
+    void OpJumpIfEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b);
     
     void OpCall(const std::vector<VMRegister>& args);
     void OpCallMove(const VMRegister& dst, const std::vector<VMRegister>& args);

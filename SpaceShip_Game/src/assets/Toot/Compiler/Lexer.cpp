@@ -134,11 +134,15 @@ namespace Compiler
 				continue;
 			}
 
-			if (!std::isdigit(c)) 
+            if (c == '.')
+            {
+                floating_point = true;
+                continue;
+            }
+
+			if (!std::isdigit(c))
 				return;
 
-			if (c == '.')
-				floating_point = true;
 		}
 
 		if (floating_point)
@@ -184,6 +188,9 @@ namespace Compiler
 
 				if (std::isspace(source[i]))
 					continue;
+                
+                if (source[i] == '.')
+                    continue;
 
 				if (source[i] != ';' || source[i] != ')')
 				{

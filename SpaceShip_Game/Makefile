@@ -87,16 +87,26 @@ endif
 GENERATED :=
 OBJECTS :=
 
+GENERATED += $(OBJDIR)/CPPBinding.o
+GENERATED += $(OBJDIR)/Compiler.o
+GENERATED += $(OBJDIR)/FZFrame.o
 GENERATED += $(OBJDIR)/FZPolygon.o
 GENERATED += $(OBJDIR)/FZRigidbody.o
 GENERATED += $(OBJDIR)/FZSim.o
 GENERATED += $(OBJDIR)/FZSpring.o
+GENERATED += $(OBJDIR)/FZThruster.o
 GENERATED += $(OBJDIR)/Framework.o
 GENERATED += $(OBJDIR)/Game.o
+GENERATED += $(OBJDIR)/IO.o
+GENERATED += $(OBJDIR)/Lexer.o
+GENERATED += $(OBJDIR)/Parser.o
 GENERATED += $(OBJDIR)/PhysGun.o
 GENERATED += $(OBJDIR)/PhysObj.o
+GENERATED += $(OBJDIR)/PreProcess.o
 GENERATED += $(OBJDIR)/ScriptRegister.o
 GENERATED += $(OBJDIR)/Sim.o
+GENERATED += $(OBJDIR)/SimLib.o
+GENERATED += $(OBJDIR)/TVM.o
 GENERATED += $(OBJDIR)/Thruster.o
 GENERATED += $(OBJDIR)/imgui-SFML.o
 GENERATED += $(OBJDIR)/imgui.o
@@ -104,16 +114,26 @@ GENERATED += $(OBJDIR)/imgui_demo.o
 GENERATED += $(OBJDIR)/imgui_draw.o
 GENERATED += $(OBJDIR)/imgui_tables.o
 GENERATED += $(OBJDIR)/imgui_widgets.o
+OBJECTS += $(OBJDIR)/CPPBinding.o
+OBJECTS += $(OBJDIR)/Compiler.o
+OBJECTS += $(OBJDIR)/FZFrame.o
 OBJECTS += $(OBJDIR)/FZPolygon.o
 OBJECTS += $(OBJDIR)/FZRigidbody.o
 OBJECTS += $(OBJDIR)/FZSim.o
 OBJECTS += $(OBJDIR)/FZSpring.o
+OBJECTS += $(OBJDIR)/FZThruster.o
 OBJECTS += $(OBJDIR)/Framework.o
 OBJECTS += $(OBJDIR)/Game.o
+OBJECTS += $(OBJDIR)/IO.o
+OBJECTS += $(OBJDIR)/Lexer.o
+OBJECTS += $(OBJDIR)/Parser.o
 OBJECTS += $(OBJDIR)/PhysGun.o
 OBJECTS += $(OBJDIR)/PhysObj.o
+OBJECTS += $(OBJDIR)/PreProcess.o
 OBJECTS += $(OBJDIR)/ScriptRegister.o
 OBJECTS += $(OBJDIR)/Sim.o
+OBJECTS += $(OBJDIR)/SimLib.o
+OBJECTS += $(OBJDIR)/TVM.o
 OBJECTS += $(OBJDIR)/Thruster.o
 OBJECTS += $(OBJDIR)/imgui-SFML.o
 OBJECTS += $(OBJDIR)/imgui.o
@@ -202,6 +222,9 @@ $(OBJDIR)/imgui_widgets.o: ../vendor/imgui/imgui_widgets.cpp
 $(OBJDIR)/imgui-SFML.o: ../vendor/sfml-imgui/imgui-SFML.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FZFrame.o: src/assets/Fizzix/FZFrame.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/FZPolygon.o: src/assets/Fizzix/FZPolygon.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -214,10 +237,37 @@ $(OBJDIR)/FZSim.o: src/assets/Fizzix/FZSim.cpp
 $(OBJDIR)/FZSpring.o: src/assets/Fizzix/FZSpring.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FZThruster.o: src/assets/Fizzix/FZThruster.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/PhysGun.o: src/assets/PhysGameObj/PhysGun.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/PhysObj.o: src/assets/PhysGameObj/PhysObj.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Compiler.o: src/assets/Toot/Compiler/Compiler.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Lexer.o: src/assets/Toot/Compiler/Lexer.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Parser.o: src/assets/Toot/Compiler/Parser.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/PreProcess.o: src/assets/Toot/Compiler/PreProcess.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/CPPBinding.o: src/assets/Toot/TVM/Lib/CPPBinding.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/IO.o: src/assets/Toot/TVM/Lib/IO.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/SimLib.o: src/assets/Toot/TVM/Lib/SimLib.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/TVM.o: src/assets/Toot/TVM/TVM.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Framework.o: src/assets/framework/Framework.cpp

@@ -28,12 +28,23 @@ VMRegister SimLib::DoSome(VM &vm, const std::vector<VMRegister> &args)
     return {};
 }
 
+VMRegister SimLib::GetSome(VM& vm, const std::vector<VMRegister>& arsg)
+{
+    fz::Sim& sim = Sim::GetSim();
+    VMRegister res; 
+    res.type = VMRegisterType::FLOAT;
+    res.value.flt = 0.5f;
+
+    return res;
+}
+
 CPPLib SimLib::GetSimLib()
 {
     CPPLib l;
     l.name = "SimLib";
     
     REGISTER_LIBFUNC(l, DoSome, "registerregister")
+    REGISTER_LIBFUNC(l, GetSome, "")
 
     return l;
 }

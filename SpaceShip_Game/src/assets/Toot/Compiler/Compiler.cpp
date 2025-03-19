@@ -21,7 +21,8 @@ namespace Compiler
 			return CompileResult::ERR;
 
 		// to vm bytecodes
-		Parse(tokens, res);
+		if (!Parse(tokens, res))
+			return CompileResult::ERR;
         
 		return CompileResult::NONE;
 	}
