@@ -35,6 +35,7 @@ public:
 	static fz::Sim& GetSim();
 
 	bool pause_sim = false;
+	inline static float d_y = 0;
 
 #ifdef TOAD_EDITOR
 	void OnEditorUI(Toad::Object* obj, ImGuiContext* ctx) override;

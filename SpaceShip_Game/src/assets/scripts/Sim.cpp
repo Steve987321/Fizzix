@@ -15,6 +15,7 @@ using namespace Toad;
 static VM vm;
 static fz::Sim sim;
 static Vec2f player_vel;
+static bool run_vm = false;
 static bool add_potential_spring = false;
 static bool mouse_released = false;
 static bool mouse_pressed = false;
@@ -76,7 +77,10 @@ void Sim::OnStart(Object* obj)
 	mouse_released = false;
 	mouse_pressed = false;
 	add_potential_spring = false;
+	run_vm = false;
+	d_y = 0;
 
+	// #todo use something else for sim objects 
 	Toad::DrawingCanvas::ClearVertices();
 
 	std::vector<Toad::Vec2f> player = {{-50, -30}, {-30, -30}, {-30, 0}, {-50, -30}, {-30, 0},  {-50, 0}};
@@ -90,8 +94,8 @@ void Sim::OnStart(Object* obj)
 	sim_player.rb.restitution = 0.5f;
 	sim_player.rb.friction = 1.f;
 
-	fz::Polygon p1(triangle);
-	p1.Translate({-50, -100});
+	// fz::Polygon p1(triangle);
+	// p1.Translate({-50, -100});
 
 	fz::Polygon floor(floor_v);
 	floor.rb.is_static = true;
@@ -99,12 +103,12 @@ void Sim::OnStart(Object* obj)
 	sim.polygons.emplace_back(sim_player);
 	sim_player.Translate({60, 0});
 	sim.polygons.emplace_back(sim_player);
-	sim.polygons.emplace_back(p1);
+	// sim.polygons.emplace_back(p1);
 	sim.polygons.emplace_back(floor);
 
 	Toad::DrawingCanvas::AddVertexArray(player.size());
 	Toad::DrawingCanvas::AddVertexArray(sim_player.vertices.size());
-	Toad::DrawingCanvas::AddVertexArray(triangle.size());
+	// Toad::DrawingCanvas::AddVertexArray(triangle.size());
 	Toad::DrawingCanvas::AddVertexArray(floor_v.size());
 
 	Input::AddKeyPressCallback(OnKeyPress);
@@ -178,8 +182,18 @@ void Sim::OnUpdate(Object* obj)
 
 void Sim::OnFixedUpdate(Toad::Object* obj)
 {
+	d_y = sim.polygons[0].rb.center.y;
 	if (!pause_sim)
 		sim.Update(Time::GetFixedDeltaTime());
+	d_y = sim.polygons[0].rb.center.y - d_y;
+
+	if (run_vm)
+	{
+		vm.Run(); 
+
+		// doesn't have a main loop so reset
+		vm.instruction_pointer = 0;
+	}
 }
 
 void Sim::OnRender(Object* obj, sf::RenderTarget& target) 
@@ -258,8 +272,14 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 		{
 			vm.instructions = bytecodes;
 			vm.Init();
+			run_vm = true;
 			vm.Run();
 		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Stop"))
+	{
+		run_vm = false;
 	}
 	ImGui::EndDisabled();
 	if (ImGui::TreeNode("Compiled Bytecodes"))
