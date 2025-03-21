@@ -10,6 +10,8 @@
 
 #include "engine/PlaySession.h"
 
+#include "SimEnvironments/CarEnvironment.h"
+
 using namespace Toad;
 
 static VM vm;
@@ -21,6 +23,9 @@ static bool mouse_released = false;
 static bool mouse_pressed = false;
 static bool show_spring_add_popup = false;
 static fz::Spring potential_spring {};
+
+static float env_car_gas = 0.f;
+static bool env_car_loaded = false;
 
 static void OnMousePress(sf::Mouse::Button mouse)
 {
@@ -37,23 +42,17 @@ static void OnKeyPress(Keyboard::Key key)
 {
 	if (key == Keyboard::D)
 	{
-		player_vel.x = 10.f;
+		env_car_gas = 10.f;
 	}
-	else if (key == Keyboard::A)
+	if (key == Keyboard::A)
 	{
-		player_vel.x = - 10.f;
+		env_car_gas = -10.f;
 	}
 }
 static void OnKeyRelease(Keyboard::Key key)
 {
-	if (key == Keyboard::D)
-	{
-		player_vel.x = 0;
-	}
-	else if (key == Keyboard::A)
-	{
-		player_vel.x = 0;
-	}
+	if (key == Keyboard::D || key == Keyboard::A)
+		env_car_gas = 0.f;
 }
 
 void Sim::OnStart(Object* obj)
@@ -122,10 +121,10 @@ void Sim::OnUpdate(Object* obj)
 	Script::OnUpdate(obj);
 
 	Camera* cam = Camera::GetActiveCamera();
-	if (cam)
-		cam->SetPosition(sim.polygons[0].rb.center);
+	// if (cam)
+	// 	cam->SetPosition(sim.polygons[0].rb.center);
 
-	sim.polygons[0].rb.velocity += player_vel * Time::GetDeltaTime();
+	// sim.polygons[0].rb.velocity += player_vel * Time::GetDeltaTime();
 
 	Vec2f world_mouse = Screen::ScreenToWorld(Mouse::GetPosition(), *Camera::GetActiveCamera());
 	
@@ -149,11 +148,12 @@ void Sim::OnUpdate(Object* obj)
 					potential_spring.end_rb = &sim.polygons[i].rb;
 					potential_spring.end_rel = world_mouse - sim.polygons[i].rb.center;
 					potential_spring.target_len = fz::dist(world_mouse, potential_spring.start_rb->center + potential_spring.start_rel);
-					potential_spring.min_len = fz::dist(world_mouse, potential_spring.start_rb->center + potential_spring.start_rel) / 3.f;
+					potential_spring.min_len = potential_spring.target_len / 3.f;
 					sim.springs.push_back(potential_spring);
 				}
 			}
 		}
+
 		DrawingCanvas::DrawArrow(sim.polygons[i].rb.center, sim.polygons[i].rb.velocity, 1.f);
 		
 		for (int j = 0; j < sim.polygons[i].vertices.size(); j++)
@@ -177,8 +177,10 @@ void Sim::OnUpdate(Object* obj)
 
 	mouse_pressed = false;
 	mouse_released = false;
-}
 
+	if (env_car_loaded)
+		CarEnvironmentUpdate(env_car_gas * Time::GetDeltaTime());
+}
 
 void Sim::OnFixedUpdate(Toad::Object* obj)
 {
@@ -282,7 +284,7 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 		run_vm = false;
 	}
 	ImGui::EndDisabled();
-	if (ImGui::TreeNode("Compiled Bytecodes"))
+	if (ImGui::TreeNode("Compiled Bytecodes View1"))
 	{
 		int i = 0;
 		for (const VM::Instruction& ins : bytecodes)
@@ -291,6 +293,52 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 			ImGui::SameLine();
 			ImGui::Text(" %s", InstructionToStr(ins).c_str());
 			i++;
+		}
+
+		ImGui::TreePop();
+	}
+
+	if (ImGui::TreeNode("Compiled Bytecodes View2"))
+	{
+		for (const VM::Instruction& ins : bytecodes)
+		{
+			ImGui::Text("%d", (int)ins.op);
+			for (const VMRegister& arg : ins.args)
+			{
+				ImGui::SameLine();
+
+				switch (arg.type)
+				{
+					case VMRegisterType::FLOAT:
+						ImGui::Text("%.2f", arg.value.flt);
+						break;
+					case VMRegisterType::INT:
+					case VMRegisterType::REGISTER:
+						ImGui::Text("%d", arg.value.num);
+						break;
+					default: 
+						ImGui::Text("?");
+						break;
+				}
+			}
+			if (ins.reserved.type != VMRegisterType::INVALID)
+			{
+				ImGui::SameLine();
+
+				switch (ins.reserved.type)
+				{
+					case VMRegisterType::FLOAT:
+						ImGui::Text("%.2f", ins.reserved.value.flt);
+						break;
+					case VMRegisterType::INT:
+					case VMRegisterType::REGISTER:
+						ImGui::Text("%d", ins.reserved.value.num);
+						break;
+					default: 
+						ImGui::Text("?");
+						break;
+				}
+			}
 		}
 
 		ImGui::TreePop();
@@ -350,6 +398,17 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 	ImGui::End();
 
 	ImGui::Begin("[Sim] fizzix menu");
+
+	if (ImGui::Button("LoadCarScene"))
+	{
+		env_car_loaded = true;
+		CarEnvironmentLoad();
+		Toad::DrawingCanvas::ClearVertices();
+
+		for (fz::Polygon& p : sim.polygons)
+			Toad::DrawingCanvas::AddVertexArray(p.vertices.size());
+	}
+
     if (!sim.polygons.empty())
     {
         if (ImGui::Button("FORCE"))
@@ -393,6 +452,8 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 			ImGui::Text("attached A: (%.2f %.2f) B: (%.2f %.2f)", spr.start_rb->center.x,  spr.start_rb->center.y, spr.end_rb->center.x, spr.end_rb->center.y);
 			
 			ImGui::DragFloat("Stiffness", &spr.stiffness, 0.05f);
+			ImGui::DragFloat("Rebound damping", &spr.rebound_damping, 0.05f);
+			ImGui::DragFloat("Compression damping", &spr.compression_damping, 0.05f);
 			ImGui::DragFloat("Target len", &spr.target_len);
 			ImGui::DragFloat("Min len", &spr.min_len);
 			

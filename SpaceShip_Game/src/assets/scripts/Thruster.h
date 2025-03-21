@@ -11,7 +11,7 @@ public:
 
 public:
 	float thrust = 1000.f;
-	float rotation = 0.f; 
+	float angle = 0.f; 
 	float mass = 10.f; 
 
 	Toad::Vec2f velocity{0, 0};

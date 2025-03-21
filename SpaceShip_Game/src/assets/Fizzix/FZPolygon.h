@@ -4,6 +4,8 @@
 
 namespace fz
 {
+    std::array<Toad::Vec2f, 6> CreateSquare(float size_x, float size_y);
+    
     class Polygon
     {
     public:

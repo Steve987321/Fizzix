@@ -24,13 +24,17 @@ namespace fz
             Toad::DrawingCanvas::DrawArrow(end_pos_a, {0, 5.f}, 1.f, Toad::Color::Blue);
             // Toad::DrawingCanvas::DrawText(end_pos_a, std::to_string(correct), 10);
 
+            float stiffy = stiffness;
             if (correct > 0)
             {
                 dir_norm *= -1;
+                stiffy *= compression_damping;
             }
+            else 
+                stiffy *= rebound_damping;
 
-            start_rb->velocity += dir_norm * d * stiffness / start_rb->mass;
-            end_rb->velocity -= dir_norm * d * stiffness / end_rb->mass;
+            start_rb->velocity += dir_norm * d * stiffy / start_rb->mass;
+            end_rb->velocity -= dir_norm * d * stiffy / end_rb->mass;
             return; 
         }
         
