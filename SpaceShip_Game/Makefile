@@ -88,6 +88,7 @@ GENERATED :=
 OBJECTS :=
 
 GENERATED += $(OBJDIR)/CPPBinding.o
+GENERATED += $(OBJDIR)/CarEnvironment.o
 GENERATED += $(OBJDIR)/Compiler.o
 GENERATED += $(OBJDIR)/FZFrame.o
 GENERATED += $(OBJDIR)/FZPolygon.o
@@ -115,6 +116,7 @@ GENERATED += $(OBJDIR)/imgui_draw.o
 GENERATED += $(OBJDIR)/imgui_tables.o
 GENERATED += $(OBJDIR)/imgui_widgets.o
 OBJECTS += $(OBJDIR)/CPPBinding.o
+OBJECTS += $(OBJDIR)/CarEnvironment.o
 OBJECTS += $(OBJDIR)/Compiler.o
 OBJECTS += $(OBJDIR)/FZFrame.o
 OBJECTS += $(OBJDIR)/FZPolygon.o
@@ -244,6 +246,9 @@ $(OBJDIR)/PhysGun.o: src/assets/PhysGameObj/PhysGun.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/PhysObj.o: src/assets/PhysGameObj/PhysObj.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/CarEnvironment.o: src/assets/SimEnvironments/CarEnvironment.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Compiler.o: src/assets/Toot/Compiler/Compiler.cpp
