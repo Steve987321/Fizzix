@@ -24,7 +24,7 @@ void Thruster::ExposeVars()
 {
 	Script::ExposeVars();
 	EXPOSE_VAR(thrust);
-	EXPOSE_VAR(rotation);
+	EXPOSE_VAR(angle);
 	EXPOSE_VAR(mass);
 	EXPOSE_VAR(attached_obj_name);
 }

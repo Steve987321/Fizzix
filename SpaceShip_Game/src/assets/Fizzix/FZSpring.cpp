@@ -32,9 +32,23 @@ namespace fz
             }
             else 
                 stiffy *= rebound_damping;
+            
+            Toad::Vec2f start_rb_force = dir_norm * d * stiffy / start_rb->mass;
+            Toad::Vec2f end_rb_force = dir_norm * d * stiffy / end_rb->mass;
 
-            start_rb->velocity += dir_norm * d * stiffy / start_rb->mass;
-            end_rb->velocity -= dir_norm * d * stiffy / end_rb->mass;
+            start_rb->velocity += start_rb_force;
+            end_rb->velocity -= end_rb_force;
+            
+            // apply angular velocity 
+            float torque_start = cross(start_rel, start_rb_force * rotation_force_factor);
+            float torque_end = cross(end_rel, end_rb_force * rotation_force_factor);
+            // Toad::DrawingCanvas::DrawText(end_pos_a, std::to_string(torque_start), 10);
+
+            start_rb->angular_velocity += torque_start / start_rb->moment_of_inertia;
+            end_rb->angular_velocity -= torque_end / end_rb->moment_of_inertia;
+            
+            UpdateRotation(dt);
+
             return; 
         }
         
@@ -50,5 +64,21 @@ namespace fz
 
         start_rb->velocity += dir_norm * d * stiffness / start_rb->mass;
         end_rb->velocity -= dir_norm * d * stiffness / end_rb->mass;
+    }
+
+    void Spring::UpdateRotation(float dt)
+    {
+        float start_angle = start_rb->angular_velocity * dt;
+        float end_angle = end_rb->angular_velocity * dt;
+
+        float start_cos = cos(start_angle);
+        float start_sin = sin(start_angle);
+        start_rel.x = start_rel.x * start_cos - start_rel.y * start_sin;
+        start_rel.y = start_rel.x * start_sin + start_rel.y * start_cos;
+
+        float end_cos = cos(end_angle);
+        float end_sin = sin(end_angle);
+        end_rel.x = end_rel.x * end_cos - end_rel.y * end_sin;
+        end_rel.y = end_rel.x * end_sin + end_rel.y * end_cos;
     }
 }

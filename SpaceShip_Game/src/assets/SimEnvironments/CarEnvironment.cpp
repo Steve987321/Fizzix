@@ -27,7 +27,7 @@ void CarEnvironmentLoad()
     std::array<Toad::Vec2f, 6> wheel_vertices = fz::CreateSquare(10, 10);
 
     // obstacle 
-    std::array<Toad::Vec2f, 6> obstacle_vertices = fz::CreateSquare(5, 30);
+    std::array<Toad::Vec2f, 6> obstacle_vertices = fz::CreateSquare(5, 10);
 
     { 
         fz::Polygon terrain({terrain_vertices.begin(), terrain_vertices.end()});
@@ -56,11 +56,11 @@ void CarEnvironmentLoad()
 
         // obstacles
         fz::Polygon obstacle({obstacle_vertices.begin(), obstacle_vertices.end()});
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 5; i++)
         {
             for (int j = 0; j < 3; j++)
             {
-                obstacle.Translate({(float)i * 20.f, (float)j * -5.f});
+                obstacle.Translate({(float)i * 100.f, (float)j * -5.f});
                 sim.polygons.emplace_back(obstacle);
             }
         }

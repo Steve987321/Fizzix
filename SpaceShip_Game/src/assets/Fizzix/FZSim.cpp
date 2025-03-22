@@ -123,7 +123,10 @@ namespace fz
         for (Polygon& p : polygons)
         {
             if (p.rb.is_static)
+            {
+                p.rb.velocity = Toad::Vec2f{0, 0};
                 continue;
+            }
 
             p.rb.velocity += gravity * dt;
             
@@ -134,6 +137,11 @@ namespace fz
             p.Translate(movement);
 
             p.Rotate(p.rb.angular_velocity * dt);
+        }
+
+        for (Spring& spr : springs)
+        {
+            spr.Update(dt);
         }
     
         for (int i = 0; i < polygons.size(); i++)
@@ -156,11 +164,6 @@ namespace fz
                         Resolve(polygons[i].rb, polygons[j].rb, contact, normal, penetration); // Resolve collision
                 }
             }
-        }
-
-        for (Spring& spr : springs)
-        {
-            spr.Update(dt);
         }
     }
 
