@@ -21,7 +21,6 @@ namespace fz
             Toad::Vec2f end_pos_a = ((end_pos + Toad::Vec2f(-dir_norm * correct / 2.f)) + start_pos_a + dir_norm * correct / 2.f) / 2.f;
             float d = dist(start_pos_a, end_pos_a);
             // Toad::DrawingCanvas::DrawArrow(start_pos, dir_norm * 2.f, 1.f, Toad::Color::Blue);
-            Toad::DrawingCanvas::DrawArrow(end_pos_a, {0, 5.f}, 1.f, Toad::Color::Blue);
             // Toad::DrawingCanvas::DrawText(end_pos_a, std::to_string(correct), 10);
 
             float stiffy = stiffness;
@@ -33,6 +32,9 @@ namespace fz
             else 
                 stiffy *= rebound_damping;
             
+            Toad::Color sitffness_as_col(0, 0, (uint8_t)((stiffy / std::max(stiffness, 1.f)) * 255.f), 255);
+            Toad::DrawingCanvas::DrawArrow(end_pos_a, {0, 5.f}, 1.f, sitffness_as_col);
+
             Toad::Vec2f start_rb_force = dir_norm * d * stiffy / start_rb->mass;
             Toad::Vec2f end_rb_force = dir_norm * d * stiffy / end_rb->mass;
 

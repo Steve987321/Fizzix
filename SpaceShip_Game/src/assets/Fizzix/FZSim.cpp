@@ -125,6 +125,7 @@ namespace fz
             if (p.rb.is_static)
             {
                 p.rb.velocity = Toad::Vec2f{0, 0};
+                p.rb.angular_velocity = 0.f;
                 continue;
             }
 
@@ -160,8 +161,8 @@ namespace fz
 
                 if (collide) 
                 {
-                    for (int k = 0; k < 10; k++)
-                        Resolve(polygons[i].rb, polygons[j].rb, contact, normal, penetration); // Resolve collision
+                    // for (int k = 0; k < 10; k++)
+                        Resolve(polygons[i].rb, polygons[j].rb, contact, normal, penetration); 
                 }
             }
         }

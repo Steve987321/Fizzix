@@ -105,8 +105,6 @@ public:
 	void OpLabel(const VMRegister& a, size_t ip); // this is diff
 	void OpJump(const VMRegister& jump);
     
-    void RegisterCPP(const VMRegister& lib);
-
 	// jump to ip or label depending on type
 	void OpJumpIfNotEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b);
     void OpJumpIfEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b);

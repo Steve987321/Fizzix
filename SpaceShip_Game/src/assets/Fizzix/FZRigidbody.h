@@ -32,6 +32,7 @@ namespace fz
         float friction = 0.f;
 
         float slide = 0.f;
+        
     private:
         std::deque<HistoryData> velocities {};
         float time = 0;

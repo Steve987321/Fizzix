@@ -38,6 +38,7 @@ static void OnMouseRelease(sf::Mouse::Button mouse)
 	if (mouse == sf::Mouse::Left)
 		mouse_released = true;
 }
+
 static void OnKeyPress(Keyboard::Key key)
 {
 	if (key == Keyboard::D)
@@ -49,6 +50,7 @@ static void OnKeyPress(Keyboard::Key key)
 		env_car_gas = -10.f;
 	}
 }
+
 static void OnKeyRelease(Keyboard::Key key)
 {
 	if (key == Keyboard::D || key == Keyboard::A)
@@ -120,7 +122,7 @@ void Sim::OnUpdate(Object* obj)
 {
 	Script::OnUpdate(obj);
 
-	Camera* cam = Camera::GetActiveCamera();
+	// Camera* cam = Camera::GetActiveCamera();
 	// if (cam)
 	// 	cam->SetPosition(sim.polygons[0].rb.center);
 
@@ -192,8 +194,6 @@ void Sim::OnFixedUpdate(Toad::Object* obj)
 	if (run_vm)
 	{
 		vm.Run(); 
-
-		// doesn't have a main loop so reset
 		vm.instruction_pointer = 0;
 	}
 }
@@ -452,6 +452,7 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 			ImGui::Text("attached A: (%.2f %.2f) B: (%.2f %.2f)", spr.start_rb->center.x,  spr.start_rb->center.y, spr.end_rb->center.x, spr.end_rb->center.y);
 			
 			ImGui::DragFloat("Stiffness", &spr.stiffness, 0.05f);
+			ImGui::DragFloat("Rotational force factor", &spr.rotation_force_factor, 0.1f);
 			ImGui::DragFloat("Rebound damping", &spr.rebound_damping, 0.05f);
 			ImGui::DragFloat("Compression damping", &spr.compression_damping, 0.05f);
 			ImGui::DragFloat("Target len", &spr.target_len);

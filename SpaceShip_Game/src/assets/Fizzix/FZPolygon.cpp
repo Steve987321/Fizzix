@@ -24,7 +24,6 @@ namespace fz
             Toad::Vec2f v1 = vertices[i];
             Toad::Vec2f v2 = vertices[(i + 1) % vertices_count];
             
-            // I = m * (r1^2 + r2^2 + r1*r2)
             float r1 = length(v1 - rb.center);
             float r2 = length(v2 - rb.center);
             inertia += (r1 * r1 + r2 * r2 + r1 * r2);

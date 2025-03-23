@@ -5,6 +5,8 @@
 #include "Fizzix/FZSim.h"
 #include "Fizzix/FZMath.h"
 
+#include "Toot/TVM/TVM.h"
+
 static size_t index_terrain = 0;
 static size_t index_car_body = 0;
 static size_t index_car_wheel1 = 0;
@@ -56,11 +58,11 @@ void CarEnvironmentLoad()
 
         // obstacles
         fz::Polygon obstacle({obstacle_vertices.begin(), obstacle_vertices.end()});
-        for (int i = 0; i < 5; i++)
+        for (int i = 15; i < 20; i++)
         {
-            for (int j = 0; j < 3; j++)
+            for (int j = 1; j < 3; j++)
             {
-                obstacle.Translate({(float)i * 100.f, (float)j * -5.f});
+                obstacle.Translate({(float)i * 5.f, (float)j * -5.f});
                 sim.polygons.emplace_back(obstacle);
             }
         }
@@ -85,7 +87,8 @@ void CarEnvironmentLoad()
 
     // attach springs 
     fz::Spring spr_wheels;
-    spr_wheels.stiffness = 1.f;
+    spr_wheels.stiffness = 3.5f;
+    spr_wheels.rotation_force_factor = 0.f;
     spr_wheels.start_rb = &car_wheel1_rb;
     spr_wheels.end_rb = &car_wheel2_rb;
     spr_wheels.target_len = fz::dist(car_wheel1_rb.center, car_wheel2_rb.center);
