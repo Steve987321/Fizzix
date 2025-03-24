@@ -7,15 +7,15 @@
 #include <string_view>
 #include <unordered_map>
 #include <stack>
+#include <set>
 
 #include "Lib/CPPBinding.h"
-#include "Lib/IO.h"
-#include "Lib/SimLib.h"
 
 enum OP_CODE
 {
 	OP_DEFINE_LABEL,
 	OP_MOVE,
+    OP_MOVE_ONCE,
 	OP_ADD,
 	OP_SUBTRACT,
 	OP_MULTIPLY,
@@ -26,6 +26,9 @@ enum OP_CODE
 	OP_JUMP,
 	OP_JUMP_IF_NOT_EQUAL,
 	OP_JUMP_IF_EQUAL,
+    OP_JUMP_IF_LESS,
+    OP_JUMP_IF_GREATER,
+    OP_JUMP_ONCE,
 	//OP_SETRELREGINDEX, // for the vm to handle
 	OP_RETURN,
 	BYTE_CODE_COUNT,
@@ -61,7 +64,6 @@ struct VMRegister
 	VMRegisterType type; // zero initialized to INVALID
 };
 
-// slow because it checks alot but later when parser is done it shouldn't be needed anymore
 class VM
 {
 public:
@@ -69,6 +71,7 @@ public:
 
 	uint64_t relative_register_index = 0;
 	std::stack<uint64_t> rel_reg_stack;
+    std::stack<uint64_t> ip_stack;
 
 	uint64_t instruction_pointer = 0;
 	uint64_t pre_label_ip = 0;
@@ -84,30 +87,35 @@ public:
 
 	// id - ip 
 	std::unordered_map<uint64_t, uint64_t> labels;
-	//using function = std::function<void(VM& vm, const std::vector<Register>&)>;
 	//// ... means vector of registers
 	//// . means 1 register 
 	//// int, string, explicit type requires that type 
 	/// #todo cpp binder 
 	std::unordered_map<std::string_view, CPPFunction> functions;
+    std::set<uint64_t> skip_instructions;
 	void Init();
 
 	void Run();
     
     // returns non register type 
     const VMRegister* GetValueReg(const VMRegister& reg);
-
+    
 	void OpMove(const VMRegister& dst, const VMRegister& src);
+    void OpMoveOnce(const VMRegister& dst, const VMRegister& src);
 	void OpAdd(const VMRegister& dst, const VMRegister& a, const VMRegister& b);
 	void OpSubtract(const VMRegister& dst, const VMRegister& a, const VMRegister& b);
 	void OpMultiply(const VMRegister& dst, const VMRegister& a, const VMRegister& b);
 	void OpDivide(const VMRegister& dst, const VMRegister& a, const VMRegister& b);
 	void OpLabel(const VMRegister& a, size_t ip); // this is diff
-	void OpJump(const VMRegister& jump);
+    void OpJump(const VMRegister& jump);
+    void OpJumpOnce(const VMRegister& jump);
+    void OpReturn();
     
 	// jump to ip or label depending on type
 	void OpJumpIfNotEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b);
     void OpJumpIfEqual(const VMRegister& jump, const VMRegister& a, const VMRegister& b);
+    void OpJumpIfLess(const VMRegister& jump, const VMRegister& a, const VMRegister& b);
+    void OpJumpIfGreater(const VMRegister& jump, const VMRegister& a, const VMRegister& b);
     
     void OpCall(const std::vector<VMRegister>& args);
     void OpCallMove(const VMRegister& dst, const std::vector<VMRegister>& args);

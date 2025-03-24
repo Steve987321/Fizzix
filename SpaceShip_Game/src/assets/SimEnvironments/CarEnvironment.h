@@ -1,11 +1,22 @@
 #pragma once 
 
 inline const char* CarControllerScript = 
-R"(
+R"(once float spring_stiffness_factor = 1.0;
 
-once float spring_stiffness_factor = 1.0;
+once 
+{
+    // saves the spring properties so this can apply a stiffness factor 
+    CESaveSpringStates();
+}
 
-if (CEIsJumpKeyPressed() == 1)
+int key_d = 3;
+int key_a = 0;
+int key_space = 57;
+int key_d_down = IsKeyDown(key_d);
+int key_a_down = IsKeyDown(key_a);
+int key_space_down = IsKeyDown(key_space);
+
+if (key_space_down == 1)
 {
     if (spring_stiffness_factor > 0.0)
     {
@@ -20,27 +31,23 @@ if (CEIsJumpKeyPressed() == 1)
 }
 else 
 {
-    if (CEIsJumpKeyReleased() == 1)
-    {
-        // release jump
-        spring_stiffness_factor = 1.0; 
-    }
+    // release jump
+    spring_stiffness_factor = 1.0; 
 }
 
 float gas = 0.0;
 
-if (CEIsGasKeyPressed() == 1)
+if (key_d_down == 1)
 {
-    gas = 10.0;
+    gas = gas + 10.0;
 }
-if (CEIsReverseKeyPressed() == 1)
+if (key_a_down == 1)
 {
-    gas = -10.0;
+    gas = gas - 10.0;
 }
 
 CESetSpringStiffnessFactor(spring_stiffness_factor);
-CEApplyWheelTorque(gas);
-
+CEApplyGas(gas);
 )";
 
 // load a scene with a spring connected vehicle and obstacles 

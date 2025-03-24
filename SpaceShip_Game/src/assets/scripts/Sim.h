@@ -36,6 +36,7 @@ public:
 
 	bool pause_sim = false;
 	inline static float d_y = 0;
+	inline static float env_car_gas = 0.f;
 
 #ifdef TOAD_EDITOR
 	void OnEditorUI(Toad::Object* obj, ImGuiContext* ctx) override;

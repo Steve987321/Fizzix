@@ -14,7 +14,7 @@ namespace fz
         float target_len = 0.f;
         float compression_damping = 1.f;
         float rebound_damping = 1.f;
-        float rotation_force_factor = 30.f;
+        float rotation_force_factor = 20.f;
 
         // relative to center of rbs
         Toad::Vec2f start_rel;

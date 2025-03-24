@@ -6,6 +6,9 @@
 #include "Toot/Compiler/Compiler.h"
 #include "Toot/TVM/TVM.h"
 #include "Toot/Compiler/Parser.h" // op codes to string 
+#include "Toot/TVM/Lib/SimLib.h"
+#include "Toot/TVM/Lib/IO.h"
+
 #include "engine/Engine.h"
 
 #include "engine/PlaySession.h"
@@ -24,7 +27,6 @@ static bool mouse_pressed = false;
 static bool show_spring_add_popup = false;
 static fz::Spring potential_spring {};
 
-static float env_car_gas = 0.f;
 static bool env_car_loaded = false;
 
 static void OnMousePress(sf::Mouse::Button mouse)
@@ -39,22 +41,10 @@ static void OnMouseRelease(sf::Mouse::Button mouse)
 		mouse_released = true;
 }
 
-static void OnKeyPress(Keyboard::Key key)
+static void AddLibsToParserCtx()
 {
-	if (key == Keyboard::D)
-	{
-		env_car_gas = 10.f;
-	}
-	if (key == Keyboard::A)
-	{
-		env_car_gas = -10.f;
-	}
-}
-
-static void OnKeyRelease(Keyboard::Key key)
-{
-	if (key == Keyboard::D || key == Keyboard::A)
-		env_car_gas = 0.f;
+	Compiler::AddLibToParserCtx(SimLib::GetSimLib());
+	Compiler::AddLibToParserCtx(IO::GetIOLib());
 }
 
 void Sim::OnStart(Object* obj)
@@ -66,6 +56,7 @@ void Sim::OnStart(Object* obj)
 #endif 
 
 	Mouse::capture_mouse = true;
+	Mouse::SetVisible(true);
 
 	sim = fz::Sim();
 	vm = VM();
@@ -112,8 +103,6 @@ void Sim::OnStart(Object* obj)
 	// Toad::DrawingCanvas::AddVertexArray(triangle.size());
 	Toad::DrawingCanvas::AddVertexArray(floor_v.size());
 
-	Input::AddKeyPressCallback(OnKeyPress);
-	Input::AddKeyReleaseCallback(OnKeyRelease);
 	Input::AddMousePressCallback(OnMousePress);
 	Input::AddMouseReleaseCallback(OnMouseRelease);
 }
@@ -127,7 +116,6 @@ void Sim::OnUpdate(Object* obj)
 	// 	cam->SetPosition(sim.polygons[0].rb.center);
 
 	// sim.polygons[0].rb.velocity += player_vel * Time::GetDeltaTime();
-
 	Vec2f world_mouse = Screen::ScreenToWorld(Mouse::GetPosition(), *Camera::GetActiveCamera());
 	
 	for (int i = 0; i < sim.polygons.size(); i++)
@@ -220,7 +208,7 @@ void Sim::OnEditorUI(Toad::Object *obj, ImGuiContext *ctx)
 }
 #endif
 
-// #define TOAD_EDITOR // for intellisense in vscode 
+#define TOAD_EDITOR // for intellisense in vscode 
 
 // from parser.cpp 
 static std::string InstructionToStr(VM::Instruction instr)
@@ -264,13 +252,21 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 
 	static char source[1024];
 	static std::vector<VM::Instruction> bytecodes;
-	ImGui::InputTextMultiline("source", source, 1024);
+
+	ImVec2 command_menu_window_size = ImGui::GetWindowSize();
+	ImGui::BeginChild("Text Edit", {command_menu_window_size.x / 2.f - 10.f, command_menu_window_size.y});
+	ImGui::InputTextMultiline("source", source, 1024, {command_menu_window_size.x, command_menu_window_size.y - 20.f});
+	ImGui::EndChild();
+
+	ImGui::SameLine();
+
+	ImGui::BeginChild("VM options", {command_menu_window_size.x / 2.f - 10.f, command_menu_window_size.y});
 
 	ImGui::BeginDisabled(!begin_play);
 	if (ImGui::Button("Compile & Run"))
 	{
 		bytecodes.clear();
-		if (Compiler::CompileString(source, bytecodes) != Compiler::CompileResult::ERR)
+		if (Compiler::CompileString(source, bytecodes, AddLibsToParserCtx) != Compiler::CompileResult::ERR)
 		{
 			vm.instructions = bytecodes;
 			vm.Init();
@@ -393,7 +389,10 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 			}
 		}
 		ImGui::TreePop();
+
 	}
+
+	ImGui::EndChild();
 
 	ImGui::End();
 
@@ -404,6 +403,9 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 		env_car_loaded = true;
 		CarEnvironmentLoad();
 		Toad::DrawingCanvas::ClearVertices();
+
+		// copy default script to source 
+		strncpy(source, CarControllerScript, strlen(CarControllerScript) + 1);
 
 		for (fz::Polygon& p : sim.polygons)
 			Toad::DrawingCanvas::AddVertexArray(p.vertices.size());

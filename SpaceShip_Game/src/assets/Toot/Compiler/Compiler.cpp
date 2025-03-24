@@ -1,6 +1,5 @@
 #include "Compiler.h"
 #include "Lexer.h"
-#include "PreProcess.h"
 #include "Parser.h"
 
 #include <iostream>
@@ -9,7 +8,7 @@
 namespace Compiler
 {
 
-    CompileResult CompileString(std::string_view str, std::vector<VM::Instruction>& res)
+    CompileResult CompileString(std::string_view str, std::vector<VM::Instruction>& res, std::function<void()> pre_parse_callback)
 	{
         error_msgs.clear();
         
@@ -21,8 +20,8 @@ namespace Compiler
 			return CompileResult::ERR;
 
 		// to vm bytecodes
-		if (!Parse(tokens, res))
-			return CompileResult::ERR;
+		if (!Parse(tokens, res, pre_parse_callback))
+            return CompileResult::ERR;
         
 		return CompileResult::NONE;
 	}

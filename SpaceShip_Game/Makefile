@@ -103,7 +103,6 @@ GENERATED += $(OBJDIR)/Lexer.o
 GENERATED += $(OBJDIR)/Parser.o
 GENERATED += $(OBJDIR)/PhysGun.o
 GENERATED += $(OBJDIR)/PhysObj.o
-GENERATED += $(OBJDIR)/PreProcess.o
 GENERATED += $(OBJDIR)/ScriptRegister.o
 GENERATED += $(OBJDIR)/Sim.o
 GENERATED += $(OBJDIR)/SimLib.o
@@ -131,7 +130,6 @@ OBJECTS += $(OBJDIR)/Lexer.o
 OBJECTS += $(OBJDIR)/Parser.o
 OBJECTS += $(OBJDIR)/PhysGun.o
 OBJECTS += $(OBJDIR)/PhysObj.o
-OBJECTS += $(OBJDIR)/PreProcess.o
 OBJECTS += $(OBJDIR)/ScriptRegister.o
 OBJECTS += $(OBJDIR)/Sim.o
 OBJECTS += $(OBJDIR)/SimLib.o
@@ -258,9 +256,6 @@ $(OBJDIR)/Lexer.o: src/assets/Toot/Compiler/Lexer.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Parser.o: src/assets/Toot/Compiler/Parser.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/PreProcess.o: src/assets/Toot/Compiler/PreProcess.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/CPPBinding.o: src/assets/Toot/TVM/Lib/CPPBinding.cpp

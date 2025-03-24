@@ -7,7 +7,6 @@
 #include <stack>
 
 #include "Compiler.h"
-#include "Toot/TVM/TVM.h"
 
 namespace Compiler
 {
@@ -20,6 +19,7 @@ static std::vector<std::string> errors;
 static size_t register_pos = 0;
 static std::set<std::string> function_sigs;
 static std::vector<std::unordered_map<std::string_view, VMRegister>> vars;
+static bool once = false;
 
 static std::vector<VM::Instruction> parse_res;
 
@@ -107,6 +107,11 @@ static void PrintInstruction(OP_CODE op_code, std::vector<VMRegister> args = {},
 
 static void AddInstruction(OP_CODE op_code, std::vector<VMRegister> args = {}, VMRegister reserved = {0, VMRegisterType::INVALID})
 {
+    if (once)
+    {
+        if (op_code == OP_MOVE)
+            op_code = OP_MOVE_ONCE;
+    }
 	// temp
 	PrintInstruction(op_code, args, reserved);
 
@@ -170,9 +175,14 @@ static Token* PeekPreviousToken(int steps = 1)
 	return res;
 }
 
-static bool IsTokenKeyword(Token& token)
+static bool IsTokenNumKeyword(const Token& token)
 {
 	return token.type == TOKEN_TYPE::INT || token.type == TOKEN_TYPE::FLOAT /*|| token.type == TOKEN_TYPE::STRING*/;
+}
+
+static bool IsTokenNumerical(const Token& token)
+{
+    return token.type == TOKEN_TYPE::DECIMAL_NUMBER || token.type == TOKEN_TYPE::NUMBER;
 }
 
 static bool IsTokenOperatorAssign(Token& token)
@@ -229,51 +239,51 @@ static bool GetFunctionArgs(const std::string& func_name, std::vector<VMRegister
                 return false;
             }
 
-            // check if definition
-            if (next->type == TOKEN_TYPE::BRACKET_LEFT)
-            {
-                // if (store_return)
-                // {
-                //     AddError("Can't assign to function definition");
-                //     return;
-                // }
-
-                auto [stored_sig, _] = function_sigs.emplace(sig);
-                VMRegister func{};
-                func.type = VMRegisterType::STRING;
-                func.value.str = stored_sig->c_str();
-
-                AddInstruction(OP_DEFINE_LABEL, {func});
-
-                while (token->type != TOKEN_TYPE::BRACKET_RIGHT)
-                    Expression();
-
-                AddInstruction(OP_RETURN);
-            }
-            else if (next->type == TOKEN_TYPE::SEMICOLON)
-            {
-                // check if there exists a signature that takes these argument types
-                if (!function_sigs.contains(sig))
-                {
-                    // check if there exists a signature that takes all types
-                    std::string func_name = sig.substr(0, sig.find(' '));
-                    if (function_sigs.contains(func_name + " ..."))
-                        sig = func_name + " ...";
-                    else
-                    {
-                        // cooked
-                        AddError("No function found with signature '%s'", sig.c_str());
-                        return false;
-                    }
-                }
-
-                // if (store_return)
-                // {
-                    
-                // }
+//            // check if definition
+//            if (next->type == TOKEN_TYPE::BRACKET_LEFT)
+//            {
+//                // if (store_return)
+//                // {
+//                //     AddError("Can't assign to function definition");
+//                //     return;
+//                // }
+//
+//                auto [stored_sig, _] = function_sigs.emplace(sig);
+//                VMRegister func{};
+//                func.type = VMRegisterType::STRING;
+//                func.value.str = stored_sig->c_str();
+//
+//                AddInstruction(OP_DEFINE_LABEL, {func});
+//
+//                while (token->type != TOKEN_TYPE::BRACKET_RIGHT)
+//                    Expression();
+//
+//                AddInstruction(OP_RETURN);
+//            }
             
-                break;
+            
+            
+            // check if there exists a signature that takes these argument types
+            if (!function_sigs.contains(sig))
+            {
+                // check if there exists a signature that takes all types
+                std::string func_name = sig.substr(0, sig.find(' '));
+                if (function_sigs.contains(func_name + " ..."))
+                    sig = func_name + " ...";
+                else
+                {
+                    // cooked
+                    AddError("No function found with signature %s", sig.c_str());
+                    return false;
+                }
             }
+
+            // if (store_return)
+            // {
+                
+            // }
+        
+            break;
         }
         
         pos = i;
@@ -432,7 +442,7 @@ static VMRegister Unary()
 
 		return res;
 	}
-	else if (token->type == TOKEN_TYPE::FLOAT)
+	else if (token->type == TOKEN_TYPE::DECIMAL_NUMBER)
 	{
         res.type = VMRegisterType::REGISTER;
         float val = std::stof(token->str);
@@ -553,7 +563,7 @@ static VMRegister Identifier()
 			Token* prev = PeekPreviousToken();
 			if (prev)
 			{
-				if (IsTokenKeyword(*prev))
+				if (IsTokenNumKeyword(*prev))
 				{
 					AddError("Variable with identifier {} already exists", token->str.c_str());
 					return res;
@@ -651,7 +661,7 @@ static VMRegister IfStatement()
 		}
 		else
 		{
-			AddError("after '(' Unexpected token: {}", token->str.c_str());
+			AddError("after '(' Unexpected token: '%s'", token->str.c_str());
 			return {};
 		}
 
@@ -663,7 +673,8 @@ static VMRegister IfStatement()
 		}
 
 		Token& comp_type = *token;
-
+        // check if it is a comparison type 
+        
 		// get second argument
 		IncrementToken();
 
@@ -672,7 +683,7 @@ static VMRegister IfStatement()
 			AddError("unexpected end");
 			return {};
 		}
-		if (token->type == TOKEN_TYPE::NUMBER)
+        if (IsTokenNumerical(*token))
 		{
 			b = PlusMinus();
 		}
@@ -682,7 +693,7 @@ static VMRegister IfStatement()
 		}
 		else
 		{
-			AddError("after '{}' unexpected token: {}", comp_type.str.c_str(), token->str.c_str());
+			AddError("after '%s' unexpected token: '%s'", comp_type.str.c_str(), token->str.c_str());
 			return {};
 		}
 		
@@ -715,7 +726,7 @@ static VMRegister IfStatement()
 
 		bool end = false;
 		bool has_else = false; 
-		// check for end and check for else or else if's 
+		// check for end and check for else
 		for (size_t i = pos; i < current_tokens.size(); i++)
 		{
 			const Token* t = &current_tokens[i];
@@ -742,27 +753,43 @@ static VMRegister IfStatement()
 		}
 
 		// branch destinations 
-//		VMRegister if_branch = CreateUniqueLabelRegister();
 		VMRegister if_end = CreateUniqueLabelRegister();
 		VMRegister if_else = {};
 		if (has_else)
 			if_else = CreateUniqueLabelRegister();
 		
-		// check comparison type 
-		if (comp_type.type == TOKEN_TYPE::COMPARISON)
-		{
-			// == 
-			// go to the end if it evaluates to false 
-			AddInstruction(OP_CODE::OP_JUMP_IF_NOT_EQUAL, {if_end, a, b});
-		}
-        else if (comp_type.type == TOKEN_TYPE::NOT_EQUAL)
+        // go to the end if it evaluates to false
+        VMRegister comparison_dst;
+        if (has_else)
+            comparison_dst = if_else;
+        else
+            comparison_dst = if_end;
+
+        // check comparison type
+        switch(comp_type.type)
         {
-            // !=
-            // go to the end if it evaluates to false
-            AddInstruction(OP_CODE::OP_JUMP_IF_EQUAL, {if_end, a, b});
+            case TOKEN_TYPE::COMPARISON:
+                // ==
+                AddInstruction(OP_CODE::OP_JUMP_IF_NOT_EQUAL, {comparison_dst, a, b});
+                break;
+            case TOKEN_TYPE::NOT_EQUAL:
+                // !=
+                AddInstruction(OP_CODE::OP_JUMP_IF_EQUAL, {comparison_dst, a, b});
+                break;
+            case TOKEN_TYPE::LESS:
+                // <
+                AddInstruction(OP_CODE::OP_JUMP_IF_GREATER, {comparison_dst, a, b});
+                break;
+            case TOKEN_TYPE::GREATER:
+                // >
+                AddInstruction(OP_CODE::OP_JUMP_IF_LESS, {comparison_dst, a, b});
+                break;
+            default:
+                AddError("Invalid comparison token");
+                break;
         }
-		
-		// define branches 
+        
+		// define branches
 //		AddInstruction(OP_DEFINE_LABEL, {if_branch});
 		
         BeginInnerScope();
@@ -773,13 +800,17 @@ static VMRegister IfStatement()
         }
         else
         {
-            AddError("Expected closing bracket '}'");
+            AddError("Expected closing bracket '}' for if statement");
             return {};
         }
         
 		// #todo can use has_else instead of checking again
         if (token && token->type == TOKEN_TYPE::ELSE)
         {
+            // skip to end for if branch
+            AddInstruction(OP_JUMP, {if_end});
+            
+            // else branch label
             AddInstruction(OP_DEFINE_LABEL, {if_else});
             
             IncrementToken();
@@ -846,6 +877,37 @@ static void NumberKeyword(TOKEN_TYPE type)
     IncrementToken();
 }
 
+static void OnceKeyword()
+{
+    once = true;
+    
+    // init var once or if scope then jump once
+    IncrementToken();
+    
+    if (token)
+    {
+        if (IsTokenNumKeyword(*token))
+            NumberKeyword(token->type);
+        else if (token->type == TOKEN_TYPE::BRACKET_LEFT)
+        {
+            VMRegister begin = CreateUniqueLabelRegister();
+            VMRegister end = CreateUniqueLabelRegister();
+            
+            // jump to end of scope
+            AddInstruction(OP_CODE::OP_JUMP, {end});
+            AddInstruction(OP_CODE::OP_DEFINE_LABEL, {begin});
+            BeginInnerScope();
+            AddInstruction(OP_CODE::OP_DEFINE_LABEL, {end});
+            AddInstruction(OP_CODE::OP_JUMP_ONCE, {begin});
+            
+            IncrementToken();
+        }
+    }
+    
+    
+    once = false;
+}
+
 VMRegister Expression()
 {
 	VMRegister res{};
@@ -856,8 +918,11 @@ VMRegister Expression()
 		{
 		case TOKEN_TYPE::STRING_LITERAL:
 			break;
+        case TOKEN_TYPE::ONCE:
+            OnceKeyword();
+            break;
 		case TOKEN_TYPE::INT:
-			NumberKeyword(TOKEN_TYPE::INT);
+			NumberKeyword(token->type);
 			break;
         case TOKEN_TYPE::FLOAT:
             NumberKeyword(token->type);
@@ -918,9 +983,8 @@ void AddLibToParserCtx(const CPPLib& lib)
     }
 }
 
-bool Parse(const std::vector<Token>& tokens, std::vector<VM::Instruction>& op_codes_res)
+bool Parse(const std::vector<Token>& tokens, std::vector<VM::Instruction>& op_codes_res, std::function<void()> pre_parse_callback)
 {
-	// recursive des$0.01
     register_pos = 0;
     
     vars.clear();
@@ -931,7 +995,7 @@ bool Parse(const std::vector<Token>& tokens, std::vector<VM::Instruction>& op_co
 	current_tokens = tokens;
 
 	if (current_tokens.empty())
-		return false; // https://www.youtube.com/watch?v=Unzc731iCUY
+		return false;
 
 	pos = 0;
 	token = &current_tokens[0];
@@ -939,8 +1003,8 @@ bool Parse(const std::vector<Token>& tokens, std::vector<VM::Instruction>& op_co
 	// begin the global scope 
 	vars.push_back({});
 	
-	AddLibToParserCtx(IO::GetIOLib());
-	AddLibToParserCtx(SimLib::GetSimLib());
+	if (pre_parse_callback)
+		pre_parse_callback();
 
 	Expression();
 

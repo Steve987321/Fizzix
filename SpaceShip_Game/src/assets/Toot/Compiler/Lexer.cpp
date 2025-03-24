@@ -17,8 +17,7 @@ namespace Compiler
 		{"int", TOKEN_TYPE::INT},
 		{"float", TOKEN_TYPE::FLOAT},
 		{"for", TOKEN_TYPE::FOR},
-		{"true", TOKEN_TYPE::TRUE},
-		{"false", TOKEN_TYPE::FALSE},
+        {"once", TOKEN_TYPE::ONCE},
 	};
 
 	static bool GetNextChar(char& c)
@@ -146,7 +145,7 @@ namespace Compiler
 		}
 
 		if (floating_point)
-			token.type = TOKEN_TYPE::FLOAT;
+            token.type = TOKEN_TYPE::DECIMAL_NUMBER;
 		else
 			token.type = TOKEN_TYPE::NUMBER;
 	}
@@ -232,7 +231,6 @@ namespace Compiler
 			AdvanceUnfinishedToken(res, '"');
 			res.type = TOKEN_TYPE::STRING_LITERAL;
 			break;
-			// nuh
 		case '(':
 			res.type = TOKEN_TYPE::PARENTHESES_LEFT;
 			break;	
@@ -252,6 +250,20 @@ namespace Compiler
 			res.type = TOKEN_TYPE::ASSIGNMENT;
 			CheckFinishToken(res, '=', TOKEN_TYPE::COMPARISON);
 			break;
+        case '<':
+            res.type = TOKEN_TYPE::LESS;
+            break;
+        case '>':
+            res.type = TOKEN_TYPE::GREATER;
+            break;
+        case '&':
+            res.type = TOKEN_TYPE::BITWISE_AND;
+            CheckFinishToken(res, '&', TOKEN_TYPE::AND);
+            break;
+        case '|':
+            res.type = TOKEN_TYPE::BITWISE_OR;
+            CheckFinishToken(res, '|', TOKEN_TYPE::OR);
+            break;
 		case '!':
 			res.type = TOKEN_TYPE::NOT;
 			CheckFinishToken(res, '=', TOKEN_TYPE::NOT_EQUAL);
@@ -280,11 +292,6 @@ namespace Compiler
 		}
         
 		return res;
-	}
-
-	bool TokenIsDigit(const Token& t)
-	{
-		return t.type == TOKEN_TYPE::FLOAT || t.type == TOKEN_TYPE::INT;
 	}
 
 	void LexerInit(std::string_view src)
