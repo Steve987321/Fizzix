@@ -123,6 +123,7 @@ VMRegister SimLib::CESetSpringStiffnessFactor(VM &vm, const std::vector<VMRegist
     {
         if (i < spring_stiffness_state.size())
             spr.stiffness = spring_stiffness_state[i] * stiffness_arg->value.flt;
+        i++;
     }
 
     return {};
