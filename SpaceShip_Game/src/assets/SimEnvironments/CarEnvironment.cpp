@@ -98,7 +98,7 @@ void CarEnvironmentLoad()
     fz::Spring spr_wheel_body;
     spr_wheel_body.end_rb = &car_body_rb;
 
-    spr_wheel_body.stiffness = 1.f;
+    spr_wheel_body.stiffness = 1.0f;
     spr_wheel_body.compression_damping = 0.8f;
     spr_wheel_body.rebound_damping = 0.3f;
 
@@ -114,9 +114,9 @@ void CarEnvironmentLoad()
     sim.springs.emplace_back(spr_wheel_body);
 
     // extra springs 
-    spr_wheel_body.stiffness = 1.f;
-    spr_wheel_body.compression_damping = 1.f;
-    spr_wheel_body.rebound_damping = 1.f;
+    // spr_wheel_body.stiffness = 1.f;
+    // spr_wheel_body.compression_damping = 1.f;
+    // spr_wheel_body.rebound_damping = 1.f;
 
     // wheel 1 extra 1
     spr_wheel_body.start_rb = &car_wheel1_rb;

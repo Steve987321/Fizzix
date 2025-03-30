@@ -21,24 +21,33 @@ static VM vm;
 static fz::Sim sim;
 static Vec2f player_vel;
 static bool run_vm = false;
+
+static bool lmouse_released = false;
+static bool lmouse_pressed = false;
+static bool rmouse_released = false;
+static bool rmouse_pressed = false;
+
 static bool add_potential_spring = false;
-static bool mouse_released = false;
-static bool mouse_pressed = false;
-static bool show_spring_add_popup = false;
 static fz::Spring potential_spring {};
+
+static bool add_potential_square = false;
 
 static bool env_car_loaded = false;
 
 static void OnMousePress(sf::Mouse::Button mouse)
 {
 	if (mouse == sf::Mouse::Left)
-		mouse_pressed = true; 
+		lmouse_pressed = true; 
+	else if (mouse == sf::Mouse::Right)
+		rmouse_pressed = true; 
 }
 
 static void OnMouseRelease(sf::Mouse::Button mouse)
 {
 	if (mouse == sf::Mouse::Left)
-		mouse_released = true;
+		lmouse_released = true;
+	else if (mouse == sf::Mouse::Right)
+		rmouse_released = true; 
 }
 
 static void AddLibsToParserCtx()
@@ -65,10 +74,12 @@ void Sim::OnStart(Object* obj)
 	SimLib::RegisterToVM(vm);
 	IO::RegisterToVM(vm);
 
-	show_spring_add_popup = false;
-	mouse_released = false;
-	mouse_pressed = false;
+	lmouse_released = false;
+	lmouse_pressed = false;
+	rmouse_released = false;
+	rmouse_pressed = false;
 	add_potential_spring = false;
+	add_potential_square = false;
 	run_vm = false;
 	d_y = 0;
 
@@ -76,7 +87,6 @@ void Sim::OnStart(Object* obj)
 	Toad::DrawingCanvas::ClearVertices();
 
 	std::vector<Toad::Vec2f> player = {{-50, -30}, {-30, -30}, {-30, 0}, {-50, -30}, {-30, 0},  {-50, 0}};
-	std::vector<Toad::Vec2f> triangle={{0, -30}, {100, -30}, {100, 0}, {0, -30}, {100, 0},  {0, 0}};
 	std::vector<Toad::Vec2f> floor_v = {{-100.f, 20.f}, {50.f, 70.f}, {600.f, 20.f}};
 
 	fz::Polygon sim_player(player);
@@ -86,21 +96,16 @@ void Sim::OnStart(Object* obj)
 	sim_player.rb.restitution = 0.5f;
 	sim_player.rb.friction = 1.f;
 
-	// fz::Polygon p1(triangle);
-	// p1.Translate({-50, -100});
-
 	fz::Polygon floor(floor_v);
 	floor.rb.is_static = true;
 
 	sim.polygons.emplace_back(sim_player);
 	sim_player.Translate({60, 0});
 	sim.polygons.emplace_back(sim_player);
-	// sim.polygons.emplace_back(p1);
 	sim.polygons.emplace_back(floor);
 
 	Toad::DrawingCanvas::AddVertexArray(player.size());
 	Toad::DrawingCanvas::AddVertexArray(sim_player.vertices.size());
-	// Toad::DrawingCanvas::AddVertexArray(triangle.size());
 	Toad::DrawingCanvas::AddVertexArray(floor_v.size());
 
 	Input::AddMousePressCallback(OnMousePress);
@@ -118,18 +123,20 @@ void Sim::OnUpdate(Object* obj)
 	// sim.polygons[0].rb.velocity += player_vel * Time::GetDeltaTime();
 	Vec2f world_mouse = Screen::ScreenToWorld(Mouse::GetPosition(), *Camera::GetActiveCamera());
 	
+	static Vec2f potential_square_pos;
+
 	for (int i = 0; i < sim.polygons.size(); i++)
 	{
 		if (sim.polygons[i].ContainsPoint(world_mouse))
 		{
 			// do some 
-			if (mouse_pressed)
+			if (lmouse_pressed)
 			{
 				add_potential_spring = true;
 				potential_spring.start_rb = &sim.polygons[i].rb;
 				potential_spring.start_rel = world_mouse - sim.polygons[i].rb.center;
 			}
-			else if (add_potential_spring && mouse_released)
+			else if (add_potential_spring && lmouse_released)
 			{
 				if (potential_spring.start_rb != &sim.polygons[i].rb)
 				{
@@ -141,6 +148,27 @@ void Sim::OnUpdate(Object* obj)
 					potential_spring.min_len = potential_spring.target_len / 3.f;
 					sim.springs.push_back(potential_spring);
 				}
+			}
+		}
+		else
+		{
+			// add polygon using rmb 
+
+			if (rmouse_pressed)
+			{
+				add_potential_square = true; 
+				potential_square_pos = world_mouse;
+			}
+			else if (add_potential_square && rmouse_released)
+			{
+				add_potential_square = false; 
+				Vec2f square_size = world_mouse - potential_square_pos;
+				std::array<Vec2f, 6> square_vertices = fz::CreateSquare(square_size.x, square_size.y);
+				fz::Polygon p({square_vertices.begin(), square_vertices.end()});
+				p.Translate(potential_square_pos);
+				sim.polygons.emplace_back(p);
+				
+				Toad::DrawingCanvas::AddVertexArray(square_vertices.size());
 			}
 		}
 
@@ -155,18 +183,27 @@ void Sim::OnUpdate(Object* obj)
 		}
 	}
 
+	int i = 0;
 	for (const fz::Spring& spr : sim.springs)
 	{
 		Vec2f a = spr.start_rb->center + spr.start_rel;
 		Vec2f b = spr.end_rb->center + spr.end_rel;
 		DrawingCanvas::DrawArrow(a, (b - a), 1.f);
+		std::ostringstream ss;
+		ss << i;
+		DrawingCanvas::DrawText((a + b) / 2.f, ss.str(), 7.f);
+		i++;
 	}
 
-	if (add_potential_spring && mouse_released)
+	if (add_potential_spring && lmouse_released)
 		add_potential_spring = false;
+	if (add_potential_square && rmouse_released)
+		add_potential_square = false;
 
-	mouse_pressed = false;
-	mouse_released = false;
+	lmouse_pressed = false;
+	lmouse_released = false;
+	rmouse_pressed = false;
+	rmouse_released = false;
 
 	if (env_car_loaded)
 		CarEnvironmentUpdate(env_car_gas * Time::GetDeltaTime());
@@ -410,7 +447,12 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 		for (fz::Polygon& p : sim.polygons)
 			Toad::DrawingCanvas::AddVertexArray(p.vertices.size());
 	}
-
+	if (ImGui::Button("Clear"))
+	{
+		sim.polygons.clear();
+		sim.springs.clear();
+		Toad::DrawingCanvas::ClearVertices();
+	}
     if (!sim.polygons.empty())
     {
         if (ImGui::Button("FORCE"))
@@ -447,7 +489,7 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 	{
 		ImGui::PushID(i);
 
-		if (ImGui::TreeNode("Spring"))
+		if (ImGui::TreeNode("Spring", "Spring %d", i))
 		{
 			fz::Spring& spr = sim.springs[i];
 
@@ -469,7 +511,7 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 	{
 		ImGui::PushID(i);
 
-		if (ImGui::TreeNode("Object"))
+		if (ImGui::TreeNode("Object", "Object %d", i))
 		{
 			fz::Rigidbody& rb = sim.polygons[i].rb;
 

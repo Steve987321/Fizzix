@@ -9,6 +9,8 @@ namespace fz
         if (!start_rb || !end_rb)
             return;
 
+        UpdateRotation(dt);
+
         Toad::Vec2f start_pos = start_rb->center + start_rel;
         Toad::Vec2f end_pos = end_rb->center + end_rel;
         Toad::Vec2f dir_norm = normalize(end_pos - start_pos);
@@ -21,7 +23,7 @@ namespace fz
             Toad::Vec2f end_pos_a = ((end_pos + Toad::Vec2f(-dir_norm * correct / 2.f)) + start_pos_a + dir_norm * correct / 2.f) / 2.f;
             float d = dist(start_pos_a, end_pos_a);
             // Toad::DrawingCanvas::DrawArrow(start_pos, dir_norm * 2.f, 1.f, Toad::Color::Blue);
-            // Toad::DrawingCanvas::DrawText(end_pos_a, std::to_string(correct), 10);
+            // Toad::DrawingCanvas::DrawText(end_pos_a, std::to_string(d), 4.f);
 
             float stiffy = stiffness;
             if (correct > 0)
@@ -35,12 +37,12 @@ namespace fz
             Toad::Color sitffness_as_col(0, 0, (uint8_t)((stiffy / std::max(stiffness, 1.f)) * 255.f), 255);
             Toad::DrawingCanvas::DrawArrow(end_pos_a, {0, 5.f}, 1.f, sitffness_as_col);
 
-            Toad::Vec2f start_rb_force = dir_norm * d * stiffy / start_rb->mass;
-            Toad::Vec2f end_rb_force = dir_norm * d * stiffy / end_rb->mass;
+            Toad::Vec2f start_rb_force = dir_norm * d * stiffy / start_rb->mass * 0.9f;
+            Toad::Vec2f end_rb_force = dir_norm * d * stiffy / end_rb->mass * 0.9f;
 
             start_rb->velocity += start_rb_force;
             end_rb->velocity -= end_rb_force;
-            
+
             // apply angular velocity 
             float torque_start = cross(start_rel, start_rb_force * rotation_force_factor);
             float torque_end = cross(end_rel, end_rb_force * rotation_force_factor);
@@ -49,8 +51,6 @@ namespace fz
             start_rb->angular_velocity += torque_start / start_rb->moment_of_inertia;
             end_rb->angular_velocity -= torque_end / end_rb->moment_of_inertia;
             
-            UpdateRotation(dt);
-
             return; 
         }
         

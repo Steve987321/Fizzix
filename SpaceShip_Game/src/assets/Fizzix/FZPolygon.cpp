@@ -13,8 +13,8 @@ namespace fz
     Polygon::Polygon(const std::vector<Toad::Vec2f>& points)
         : vertices(points)
     {
-        CalculateNormals();
-        rb.center = CalcCenterOfMass();
+        UpdateNormals();
+        UpdateCentroid();
 
         float inertia = 0.0f;
         size_t vertices_count = vertices.size();
@@ -31,7 +31,7 @@ namespace fz
         rb.moment_of_inertia = inertia;
     }
 
-    void Polygon::CalculateNormals()
+    void Polygon::UpdateNormals()
     {
         normals.clear();
         int n = vertices.size();
@@ -61,10 +61,10 @@ namespace fz
             v.x = rb.center.x + x * c - y * s;
             v.y = rb.center.y + x * s + y * c;
         }
-        CalculateNormals();
+        UpdateNormals();
     }
 
-    Toad::Vec2f Polygon::CalcCenterOfMass()
+    void Polygon::UpdateCentroid()
     {
         float area = 0;
         float cx = 0, cy = 0;
@@ -81,10 +81,10 @@ namespace fz
 
         area /= 2.f;
 
-        if (std::abs(area) < 1e-6)
-            return Toad::Vec2f(0, 0); 
+        if (std::abs(area) < FLT_EPSILON)
+            return;
 
-        return Toad::Vec2f(cx / (6 * area), cy / (6 * area));
+        rb.center = Toad::Vec2f(cx / (6 * area), cy / (6 * area));
     }
 
     bool Polygon::ContainsPoint(const Toad::Vec2f &point)

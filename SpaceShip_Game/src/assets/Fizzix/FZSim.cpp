@@ -7,6 +7,8 @@
 
 namespace fz
 {
+    static std::vector<Toad::Vec2f> contacts;
+
     bool SegmentIntersection(const Toad::Vec2f& p1, const Toad::Vec2f& p2, const Toad::Vec2f& q1, const Toad::Vec2f& q2, Toad::Vec2f& intersection)
     {
         Toad::Vec2f r = p2 - p1;
@@ -15,12 +17,13 @@ namespace fz
         float rxs = r.Cross(s);
         float qpxr = (q1 - p1).Cross(r);
 
-        if (fabs(rxs) < 1e-6) 
+        if (fabs(rxs) < FLT_EPSILON) 
             return false;
 
         float t = (q1 - p1).Cross(s) / rxs;
         float u = (q1 - p1).Cross(r) / rxs;
 
+        // intersects when t and u are between 0 and 1
         if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
         {
             intersection = p1 + r * t;
@@ -30,19 +33,20 @@ namespace fz
         return false;
     }
 
-    void ClipPolygon(const Polygon& polyA, const Polygon& polyB, const Toad::Vec2f& normal, std::vector<Toad::Vec2f>& contacts)
+    void ClipPolygon(const Polygon& a, const Polygon& b, const Toad::Vec2f& normal, std::vector<Toad::Vec2f>& contacts)
     {
-        for (size_t i = 0; i < polyA.vertices.size(); i++)
+        for (size_t i = 0; i < a.vertices.size(); i++)
         {
-            size_t j = (i + 1) % polyA.vertices.size();
-            Toad::Vec2f p1 = polyA.vertices[i];
-            Toad::Vec2f p2 = polyA.vertices[j];
+            size_t j = (i + 1) % a.vertices.size();
+            
+            Toad::Vec2f p1 = a.vertices[i];
+            Toad::Vec2f p2 = a.vertices[j];
 
-            for (size_t k = 0; k < polyB.vertices.size(); k++)
+            for (size_t k = 0; k < b.vertices.size(); k++)
             {
-                size_t l = (k + 1) % polyB.vertices.size();
-                Toad::Vec2f q1 = polyB.vertices[k];
-                Toad::Vec2f q2 = polyB.vertices[l];
+                size_t l = (k + 1) % b.vertices.size();
+                Toad::Vec2f q1 = b.vertices[k];
+                Toad::Vec2f q2 = b.vertices[l];
 
                 Toad::Vec2f intersection;
                 if (SegmentIntersection(p1, p2, q1, q2, intersection))
@@ -57,8 +61,12 @@ namespace fz
         for (const Toad::Vec2f& v : poly.vertices)
         {
             float proj = dot(v, axis);
-            if (proj < min) min = proj;
-            if (proj > max) max = proj;
+
+            if (proj < min)
+                min = proj;
+
+            if (proj > max)
+                max = proj;
         }
     }
 
@@ -76,7 +84,7 @@ namespace fz
                 ProjectPolygon(b, axis, minB, maxB);
     
                 if (maxA < minB || maxB < minA)
-                    return false; // no collission
+                    return false;
     
                 float pen = std::min(maxA - minB, maxB - minA);
                 if (pen < min_penetration)
@@ -97,17 +105,18 @@ namespace fz
         normal = best_normal;
         penetration = min_penetration;
     
-        std::vector<Toad::Vec2f> contacts;
+        contacts.clear();
     
         ClipPolygon(a, b, normal, contacts);
         ClipPolygon(b, a, normal, contacts);
-    
+        
         if (!contacts.empty())
         {
-            contact = Toad::Vec2f(0, 0);
-            for (const auto& pt : contacts)
+            contact = Toad::Vec2f{0, 0};
+            for (const Toad::Vec2f& pt : contacts)
                 contact += pt;
-            contact /= static_cast<float>(contacts.size());
+
+            contact /= (float)contacts.size();
         }
         else
         {
@@ -120,6 +129,11 @@ namespace fz
 
     void Sim::Update(float dt )
     {
+        for (Spring& spr : springs)
+        {
+            spr.Update(dt);
+        }
+    
         for (Polygon& p : polygons)
         {
             if (p.rb.is_static)
@@ -134,17 +148,11 @@ namespace fz
             Toad::Vec2f center_prev = p.rb.center; 
             p.rb.Update(dt);
             Toad::Vec2f movement = p.rb.center - center_prev;
-            p.rb.center = p.CalcCenterOfMass();
+            p.UpdateCentroid();
             p.Translate(movement);
-
             p.Rotate(p.rb.angular_velocity * dt);
         }
 
-        for (Spring& spr : springs)
-        {
-            spr.Update(dt);
-        }
-    
         for (int i = 0; i < polygons.size(); i++)
         {
             for (int j = i + 1; j < polygons.size(); j++)
