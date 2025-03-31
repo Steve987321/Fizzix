@@ -54,13 +54,22 @@ namespace fz
     {
         float c = std::cos(angle);
         float s = std::sin(angle);
-        for (auto& v : vertices)
+
+        for (Toad::Vec2f& v : vertices)
         {
             float x = v.x - rb.center.x;
             float y = v.y - rb.center.y;
             v.x = rb.center.x + x * c - y * s;
             v.y = rb.center.y + x * s + y * c;
         }
+
+        for (Toad::Vec2f* v : extra_points)
+        {
+            float x = v->x;
+            v->x = x * c - v->y * s;
+            v->y = v->x * s + v->y * c;
+        }
+
         UpdateNormals();
     }
 

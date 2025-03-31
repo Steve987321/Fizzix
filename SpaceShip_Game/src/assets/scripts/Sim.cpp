@@ -87,7 +87,7 @@ void Sim::OnStart(Object* obj)
 	Toad::DrawingCanvas::ClearVertices();
 
 	std::vector<Toad::Vec2f> player = {{-50, -30}, {-30, -30}, {-30, 0}, {-50, -30}, {-30, 0},  {-50, 0}};
-	std::vector<Toad::Vec2f> floor_v = {{-100.f, 20.f}, {50.f, 70.f}, {600.f, 20.f}};
+	std::array<Toad::Vec2f, 6> floor_v = fz::CreateSquare(100000, 500);
 
 	fz::Polygon sim_player(player);
 	sim_player.Translate({10, -50});
@@ -96,12 +96,13 @@ void Sim::OnStart(Object* obj)
 	sim_player.rb.restitution = 0.5f;
 	sim_player.rb.friction = 1.f;
 
-	fz::Polygon floor(floor_v);
+	fz::Polygon floor({floor_v.begin(), floor_v.end()});
+	floor.Translate({-50, 0});
 	floor.rb.is_static = true;
 
 	sim.polygons.emplace_back(sim_player);
-	sim_player.Translate({60, 0});
-	sim.polygons.emplace_back(sim_player);
+	// sim_player.Translate({60, 0});
+	// sim.polygons.emplace_back(sim_player);
 	sim.polygons.emplace_back(floor);
 
 	Toad::DrawingCanvas::AddVertexArray(player.size());
@@ -116,9 +117,9 @@ void Sim::OnUpdate(Object* obj)
 {
 	Script::OnUpdate(obj);
 
-	// Camera* cam = Camera::GetActiveCamera();
-	// if (cam)
-	// 	cam->SetPosition(sim.polygons[0].rb.center);
+	Camera* cam = Camera::GetActiveCamera();
+	if (cam)
+		cam->SetPosition(sim.polygons[0].rb.center);
 
 	// sim.polygons[0].rb.velocity += player_vel * Time::GetDeltaTime();
 	Vec2f world_mouse = Screen::ScreenToWorld(Mouse::GetPosition(), *Camera::GetActiveCamera());
@@ -195,6 +196,17 @@ void Sim::OnUpdate(Object* obj)
 		i++;
 	}
 
+	if (Input::IsKeyDown(Keyboard::D))
+	{
+		if (sim.polygons[0].rb.angular_velocity < 10.f)
+			sim.polygons[0].rb.angular_velocity += 10.f * Time::GetDeltaTime();
+	}
+	if (Input::IsKeyDown(Keyboard::A))
+	{
+		if (sim.polygons[0].rb.angular_velocity > -10.f)
+		sim.polygons[0].rb.angular_velocity -= 10.f * Time::GetDeltaTime();
+	}
+
 	if (add_potential_spring && lmouse_released)
 		add_potential_spring = false;
 	if (add_potential_square && rmouse_released)
@@ -245,7 +257,7 @@ void Sim::OnEditorUI(Toad::Object *obj, ImGuiContext *ctx)
 }
 #endif
 
-#define TOAD_EDITOR // for intellisense in vscode 
+// #define TOAD_EDITOR // for intellisense in vscode 
 
 // from parser.cpp 
 static std::string InstructionToStr(VM::Instruction instr)
