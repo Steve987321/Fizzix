@@ -104,6 +104,7 @@ void Sim::OnStart(Object* obj)
 	// sim_player.Translate({60, 0});
 	// sim.polygons.emplace_back(sim_player);
 	sim.polygons.emplace_back(floor);
+	sim.springs.reserve(10);
 
 	Toad::DrawingCanvas::AddVertexArray(player.size());
 	Toad::DrawingCanvas::AddVertexArray(sim_player.vertices.size());
@@ -126,6 +127,7 @@ void Sim::OnUpdate(Object* obj)
 	
 	static Vec2f potential_square_pos;
 
+	static int i_prev = 0;
 	for (int i = 0; i < sim.polygons.size(); i++)
 	{
 		if (sim.polygons[i].ContainsPoint(world_mouse))
@@ -136,6 +138,7 @@ void Sim::OnUpdate(Object* obj)
 				add_potential_spring = true;
 				potential_spring.start_rb = &sim.polygons[i].rb;
 				potential_spring.start_rel = world_mouse - sim.polygons[i].rb.center;
+				i_prev = i;
 			}
 			else if (add_potential_spring && lmouse_released)
 			{
@@ -148,6 +151,9 @@ void Sim::OnUpdate(Object* obj)
 					potential_spring.target_len = fz::dist(world_mouse, potential_spring.start_rb->center + potential_spring.start_rel);
 					potential_spring.min_len = potential_spring.target_len / 3.f;
 					sim.springs.push_back(potential_spring);
+					LOGDEBUGF("{} {}", i, i_prev);
+					sim.polygons[i].extra_points.emplace_back(&sim.springs.back().end_rel);
+					sim.polygons[i_prev].extra_points.emplace_back(&sim.springs.back().start_rel);
 				}
 			}
 		}
@@ -204,7 +210,7 @@ void Sim::OnUpdate(Object* obj)
 	if (Input::IsKeyDown(Keyboard::A))
 	{
 		if (sim.polygons[0].rb.angular_velocity > -10.f)
-		sim.polygons[0].rb.angular_velocity -= 10.f * Time::GetDeltaTime();
+			sim.polygons[0].rb.angular_velocity -= 10.f * Time::GetDeltaTime();
 	}
 
 	if (add_potential_spring && lmouse_released)

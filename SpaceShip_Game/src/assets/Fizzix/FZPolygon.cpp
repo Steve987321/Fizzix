@@ -67,7 +67,7 @@ namespace fz
         {
             float x = v->x;
             v->x = x * c - v->y * s;
-            v->y = v->x * s + v->y * c;
+            v->y = x * s + v->y * c;
         }
 
         UpdateNormals();
