@@ -9,7 +9,7 @@ namespace fz
 {
     static std::vector<Toad::Vec2f> contacts;
 
-    bool SegmentIntersection(const Toad::Vec2f& p1, const Toad::Vec2f& p2, const Toad::Vec2f& q1, const Toad::Vec2f& q2, Toad::Vec2f& intersection)
+    static bool LineLineIntersection(const Toad::Vec2f& p1, const Toad::Vec2f& p2, const Toad::Vec2f& q1, const Toad::Vec2f& q2, Toad::Vec2f& intersection)
     {
         Toad::Vec2f r = p2 - p1;
         Toad::Vec2f s = q2 - q1;
@@ -17,6 +17,7 @@ namespace fz
         float rxs = r.Cross(s);
         float qpxr = (q1 - p1).Cross(r);
 
+        // check if colinear 
         if (fabs(rxs) < FLT_EPSILON) 
             return false;
 
@@ -33,7 +34,8 @@ namespace fz
         return false;
     }
 
-    void ClipPolygon(const Polygon& a, const Polygon& b, const Toad::Vec2f& normal, std::vector<Toad::Vec2f>& contacts)
+    // find contacts between all edges of a and b 
+    static void ClipPolygon(const Polygon& a, const Polygon& b, std::vector<Toad::Vec2f>& contacts)
     {
         for (size_t i = 0; i < a.vertices.size(); i++)
         {
@@ -45,20 +47,23 @@ namespace fz
             for (size_t k = 0; k < b.vertices.size(); k++)
             {
                 size_t l = (k + 1) % b.vertices.size();
+
                 Toad::Vec2f q1 = b.vertices[k];
                 Toad::Vec2f q2 = b.vertices[l];
 
                 Toad::Vec2f intersection;
-                if (SegmentIntersection(p1, p2, q1, q2, intersection))
+                if (LineLineIntersection(p1, p2, q1, q2, intersection))
                     contacts.push_back(intersection);
             }
         }
     }
 
-    void ProjectPolygon(const Polygon& poly, const Toad::Vec2f& axis, float& min, float& max)
+    static void ProjectPolygon(const Polygon& p, const Toad::Vec2f& axis, float& min, float& max)
     {
-        min = max = dot(poly.vertices[0], axis);
-        for (const Toad::Vec2f& v : poly.vertices)
+        min = FLT_MAX;
+        max = -FLT_MAX; 
+        
+        for (const Toad::Vec2f& v : p.vertices)
         {
             float proj = dot(v, axis);
 
@@ -70,23 +75,23 @@ namespace fz
         }
     }
 
-    bool SAT(const Polygon& a, const Polygon& b, Toad::Vec2f& normal, float& penetration, Toad::Vec2f& contact)
+    static bool SAT(const Polygon& a, const Polygon& b, Toad::Vec2f& normal, float& penetration, Toad::Vec2f& contact)
     {
-        float min_penetration = std::numeric_limits<float>::max();
+        float min_penetration = FLT_MAX;
         Toad::Vec2f best_normal;
         
         for (const auto& poly : {a, b})
         {
             for (const Toad::Vec2f& axis : poly.normals)
             {
-                float minA, maxA, minB, maxB;
-                ProjectPolygon(a, axis, minA, maxA);
-                ProjectPolygon(b, axis, minB, maxB);
+                float min_a, max_a, min_b, max_b;
+                ProjectPolygon(a, axis, min_a, max_a);
+                ProjectPolygon(b, axis, min_b, max_b);
     
-                if (maxA < minB || maxB < minA)
+                if (max_a < min_b || max_b < min_a)
                     return false;
     
-                float pen = std::min(maxA - minB, maxB - minA);
+                float pen = std::min(max_a - min_b, max_b - min_a);
                 if (pen < min_penetration)
                 {
                     min_penetration = pen;
@@ -105,10 +110,10 @@ namespace fz
         normal = best_normal;
         penetration = min_penetration;
     
+        // get contact point 
         contacts.clear();
-    
-        ClipPolygon(a, b, normal, contacts);
-        ClipPolygon(b, a, normal, contacts);
+        ClipPolygon(a, b, contacts);
+        ClipPolygon(b, a, contacts);
         
         if (!contacts.empty())
         {

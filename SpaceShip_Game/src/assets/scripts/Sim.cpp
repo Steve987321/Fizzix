@@ -50,12 +50,6 @@ static void OnMouseRelease(sf::Mouse::Button mouse)
 		rmouse_released = true; 
 }
 
-static void AddLibsToParserCtx()
-{
-	Compiler::AddLibToParserCtx(SimLib::GetSimLib());
-	Compiler::AddLibToParserCtx(IO::GetIOLib());
-}
-
 void Sim::OnStart(Object* obj)
 {
 	Script::OnStart(obj);
@@ -71,8 +65,8 @@ void Sim::OnStart(Object* obj)
 	vm = VM();
 
 	// use the sim lib library 
-	SimLib::RegisterToVM(vm);
-	IO::RegisterToVM(vm);
+	vm.RegisterLib(SimLib::GetSimLib());
+	vm.RegisterLib(IO::GetIOLib());
 
 	lmouse_released = false;
 	lmouse_pressed = false;
@@ -151,7 +145,6 @@ void Sim::OnUpdate(Object* obj)
 					potential_spring.target_len = fz::dist(world_mouse, potential_spring.start_rb->center + potential_spring.start_rel);
 					potential_spring.min_len = potential_spring.target_len / 3.f;
 					sim.springs.push_back(potential_spring);
-					LOGDEBUGF("{} {}", i, i_prev);
 					sim.polygons[i].extra_points.emplace_back(&sim.springs.back().end_rel);
 					sim.polygons[i_prev].extra_points.emplace_back(&sim.springs.back().start_rel);
 				}
@@ -321,7 +314,7 @@ void Sim::OnImGui(Toad::Object* obj, ImGuiContext* ctx)
 	if (ImGui::Button("Compile & Run"))
 	{
 		bytecodes.clear();
-		if (Compiler::CompileString(source, bytecodes, AddLibsToParserCtx) != Compiler::CompileResult::ERR)
+		if (Compiler::CompileString(source, bytecodes, &vm) != Compiler::CompileResult::ERR)
 		{
 			vm.instructions = bytecodes;
 			vm.Init();

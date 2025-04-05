@@ -1,4 +1,4 @@
-#include "TVM.h"
+#include "Toot/TVM/TVM.h"
 
 #include <cassert>
 #include <format>
@@ -297,6 +297,15 @@ VMRegister& VM::GetReg(uint64_t index)
 	assert(index + relative_register_index < registers.size() && "iNCcrease Vm Registers size");
 
 	return registers[index + relative_register_index];
+}
+
+void VM::RegisterLib(const CPPLib &lib)
+{
+    for (const CPPFunction& f : lib.functions)
+    {
+        functions[f.function_sig] = f;
+    }
+    used_cpp_libs.emplace_back(lib);
 }
 
 void VM::OpJump(const VMRegister& a)

@@ -18,6 +18,7 @@ namespace Compiler
 		{"float", TOKEN_TYPE::FLOAT},
 		{"for", TOKEN_TYPE::FOR},
         {"once", TOKEN_TYPE::ONCE},
+        {"return", TOKEN_TYPE::RETURN},
 	};
 
 	static bool GetNextChar(char& c)

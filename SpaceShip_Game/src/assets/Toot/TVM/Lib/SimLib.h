@@ -17,10 +17,8 @@ namespace SimLib
 
 	// for the car environment 
 	VMRegister CESaveSpringStates(VM& vm, const std::vector<VMRegister>& args);
-	VMRegister CESetSpringStiffnessFactor(VM& vm, const std::vector<VMRegister>& args);
+	VMRegister CESetSpringDistanceFactor(VM& vm, const std::vector<VMRegister>& args);
 	VMRegister CEApplyGas(VM& vm, const std::vector<VMRegister>& args);
 	
 	CPPLib GetSimLib();
-
-	void RegisterToVM(VM& vm);
 }

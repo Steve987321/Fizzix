@@ -101,19 +101,19 @@ VMRegister SimLib::IsKeyDown(VM &vm, const std::vector<VMRegister> &args)
 
 // CAR ENVIRONMENT 
 
-static std::vector<float> spring_stiffness_state;
+static std::vector<float> spring_dist_state;
 
 VMRegister SimLib::CESaveSpringStates(VM &vm, const std::vector<VMRegister> &args)
 {
     fz::Sim& sim = Sim::GetSim(); 
     for (fz::Spring& spr : sim.springs)
     {
-        spring_stiffness_state.emplace_back(spr.stiffness);
+        spring_dist_state.emplace_back(spr.target_len);
     }
     return {};
 }
 
-VMRegister SimLib::CESetSpringStiffnessFactor(VM &vm, const std::vector<VMRegister> &args)
+VMRegister SimLib::CESetSpringDistanceFactor(VM &vm, const std::vector<VMRegister> &args)
 {
     const VMRegister* stiffness_arg = GetRegVal(vm, args[1]);
     fz::Sim& sim = Sim::GetSim();  
@@ -121,8 +121,8 @@ VMRegister SimLib::CESetSpringStiffnessFactor(VM &vm, const std::vector<VMRegist
 
     for (fz::Spring& spr : sim.springs)
     {
-        if (i < spring_stiffness_state.size())
-            spr.stiffness = spring_stiffness_state[i] * stiffness_arg->value.flt;
+        if (i < spring_dist_state.size())
+            spr.target_len = spring_dist_state[i] * stiffness_arg->value.flt;
         i++;
     }
 
@@ -150,17 +150,8 @@ CPPLib SimLib::GetSimLib()
     REGISTER_LIBFUNC(l, IsKeyDown, "register");
 
     REGISTER_LIBFUNC(l, CESaveSpringStates, "");
-    REGISTER_LIBFUNC(l, CESetSpringStiffnessFactor, "register");
+    REGISTER_LIBFUNC(l, CESetSpringDistanceFactor, "register");
     REGISTER_LIBFUNC(l, CEApplyGas, "register");
     
     return l;
-}
-
-void SimLib::RegisterToVM(VM& vm)
-{
-    CPPLib lib = GetSimLib();
-    for (const CPPFunction& f : lib.functions)
-    {
-        vm.functions[f.function_sig] = f;
-    }
 }

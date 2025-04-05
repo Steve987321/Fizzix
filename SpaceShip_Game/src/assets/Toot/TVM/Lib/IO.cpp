@@ -29,6 +29,7 @@ namespace IO
 		default:
 			break;
 		}
+        std::cout << std::endl;
         
         return {};
 	}
@@ -56,14 +57,5 @@ namespace IO
 		l.vars["PI"] = pi;
 
 		return l;
-	}
-	
-	void RegisterToVM(VM& vm)
-	{
-		CPPLib lib = GetIOLib();
-		for (const CPPFunction& f : lib.functions)
-		{
-			vm.functions[f.function_sig] = f;
-		}
 	}
 }

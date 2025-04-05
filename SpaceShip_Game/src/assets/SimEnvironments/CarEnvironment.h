@@ -1,7 +1,12 @@
 #pragma once 
 
 inline const char* CarControllerScript = 
-R"(once float spring_stiffness_factor = 1.0;
+R"(// Car controller script
+// Use A and D to rotate the wheels
+// Space is crouch?
+
+// store a factor to use to set the distance for the wheel to body springs
+once float spring_wheel_dist_factor = 1.0;
 
 once 
 {
@@ -12,41 +17,38 @@ once
 int key_d = 3;
 int key_a = 0;
 int key_space = 57;
-int key_d_down = IsKeyDown(key_d);
-int key_a_down = IsKeyDown(key_a);
-int key_space_down = IsKeyDown(key_space);
 
-if (key_space_down == 1)
+if (IsKeyDown(key_space) == 1)
 {
-    if (spring_stiffness_factor > 0.0)
+    if (spring_wheel_dist_factor > 0.0)
     {
         // charge jump
-        spring_stiffness_factor = spring_stiffness_factor - GetDT();  
+        spring_wheel_dist_factor = spring_wheel_dist_factor - GetDT();  
     }
     else 
     {
         // clamp to 0 
-        spring_stiffness_factor = 0.0; 
+        spring_wheel_dist_factor = 0.0; 
     }
 }
 else 
 {
     // release jump
-    spring_stiffness_factor = 1.0; 
+    spring_wheel_dist_factor = 1.0; 
 }
 
 float gas = 0.0;
 
-if (key_d_down == 1)
+if (IsKeyDown(key_d) == 1)
 {
     gas = gas + 10.0;
 }
-if (key_a_down == 1)
+if (IsKeyDown(key_a) == 1)
 {
     gas = gas - 10.0;
 }
 
-CESetSpringStiffnessFactor(spring_stiffness_factor);
+CESetSpringDistanceFactor(spring_wheel_dist_factor);
 CEApplyGas(gas);
 )";
 

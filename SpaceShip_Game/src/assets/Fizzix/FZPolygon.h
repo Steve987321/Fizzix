@@ -12,6 +12,8 @@ namespace fz
     public:
         std::vector<Toad::Vec2f> vertices;
         std::vector<Toad::Vec2f> normals;
+
+        // things attached to this polygon that need to be updated
         std::vector<Toad::Vec2f*> extra_points;
         Rigidbody rb;
 

@@ -92,6 +92,7 @@ public:
 	//// int, string, explicit type requires that type 
 	/// #todo cpp binder 
 	std::unordered_map<std::string_view, CPPFunction> functions;
+    std::vector<CPPLib> used_cpp_libs;
     std::set<uint64_t> skip_instructions;
 	void Init();
 
@@ -123,6 +124,10 @@ public:
 
 	// returns anything other then type REGISTER
 	VMRegister& GetValueAtReg();
+    
+	// helper for registering cpp libraries to vm 
+	void RegisterLib(const CPPLib& lib);
+
 private:
 	// arg is usually ip 
 	void BeginRelativeRegIndex(uint64_t rel);

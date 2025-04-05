@@ -18,8 +18,5 @@ namespace IO
 
 	VMRegister Nothing(VM& vm, const std::vector<VMRegister>& args);
 
-	// for the parser and vm 
 	CPPLib GetIOLib();
-
-	void RegisterToVM(VM& vm);
 }
