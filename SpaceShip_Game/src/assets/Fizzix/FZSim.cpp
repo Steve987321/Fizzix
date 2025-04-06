@@ -269,4 +269,32 @@ namespace fz
         }
     }
 
+    fz::Polygon& Sim::AddPolygon(fz::Polygon &polygon)
+    {
+        polygon.sim = this;
+        polygons.emplace_back(polygon);
+        return polygons.back();
+    }
+
+    fz::Spring& Sim::AddSpring(Polygon &start, Polygon &end, const Toad::Vec2f &rel_start, const Toad::Vec2f rel_end)
+    {
+        fz::Spring spring;         
+        spring.start_rb = &start.rb;
+        spring.start_rel = rel_start;
+        spring.end_rb = &end.rb;
+        spring.end_rel = rel_end;
+        spring.target_len = fz::dist(end.rb.center + rel_end, start.rb.center + spring.start_rel);
+        spring.min_len = spring.target_len / 3.f;
+        LOGDEBUGF("{} {} | {} {}", rel_start.x, rel_start.y, rel_end.x, rel_end.y);
+        springs.push_back(spring);
+
+        // fz::Spring& res = springs.back();
+        // use index this will eventually crash 
+        // start.extra_points.emplace_back(&res.start_rel);
+        // end.extra_points.emplace_back(&res.end_rel);
+
+        start.attached_spring_points.emplace_back(springs.size() - 1, false);
+        end.attached_spring_points.emplace_back(springs.size() - 1, true);
+        return springs.back();
+    }
 }

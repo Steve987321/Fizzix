@@ -14,6 +14,8 @@ static size_t index_car_wheel2 = 0;
 
 void CarEnvironmentLoad()
 {
+    // #TODO: use sim.AddSpring
+    
     fz::Sim& sim = Sim::GetSim();
 
     sim.polygons.clear();
@@ -64,22 +66,22 @@ void CarEnvironmentLoad()
             for (int j = 1; j < 3; j++)
             {
                 obstacle.Translate({(float)i * 5.f, (float)j * -5.f});
-                sim.polygons.emplace_back(obstacle);
+                sim.AddPolygon(obstacle);
             }
         }
 
         index_car_body = sim.polygons.size();
-        sim.polygons.emplace_back(car_body);
+        sim.AddPolygon(car_body);
 
         index_car_wheel1 = sim.polygons.size();
-        sim.polygons.emplace_back(car_wheel1);
+        sim.AddPolygon(car_wheel1);
 
         index_car_wheel2 = sim.polygons.size();
-        sim.polygons.emplace_back(car_wheel2);
+        sim.AddPolygon(car_wheel2);
 
         // static object pushed last because how collision checks are done 
         index_terrain = sim.polygons.size();
-        sim.polygons.emplace_back(terrain);
+        sim.AddPolygon(terrain);
     }
 
     fz::Rigidbody& car_wheel1_rb = sim.polygons[index_car_wheel1].rb;
@@ -94,8 +96,8 @@ void CarEnvironmentLoad()
     spr_wheels.end_rb = &car_wheel2_rb;
     spr_wheels.target_len = fz::dist(car_wheel1_rb.center, car_wheel2_rb.center);
     sim.springs.emplace_back(spr_wheels);
-    sim.polygons[index_car_wheel1].extra_points.emplace_back(&sim.springs.back().start_rel);
-    sim.polygons[index_car_wheel2].extra_points.emplace_back(&sim.springs.back().end_rel);
+    sim.polygons[index_car_wheel1].attached_spring_points.emplace_back(sim.springs.size() - 1, false);
+    sim.polygons[index_car_wheel2].attached_spring_points.emplace_back(sim.springs.size() - 1, true);
 
     // wheels to body 
     fz::Spring spr_wheel_body;
@@ -110,15 +112,15 @@ void CarEnvironmentLoad()
     spr_wheel_body.end_rel = Toad::Vec2f{-15, 5};
     spr_wheel_body.target_len = fz::dist(car_wheel1_rb.center, car_body_rb.center + spr_wheel_body.end_rel);
     sim.springs.emplace_back(spr_wheel_body);
-    sim.polygons[index_car_wheel1].extra_points.emplace_back(&sim.springs.back().start_rel);
-    sim.polygons[index_car_body].extra_points.emplace_back(&sim.springs.back().end_rel);
+    sim.polygons[index_car_wheel1].attached_spring_points.emplace_back(sim.springs.size() - 1, false);
+    sim.polygons[index_car_body].attached_spring_points.emplace_back(sim.springs.size() - 1, true);
 
     // wheel 2
     spr_wheel_body.start_rb = &car_wheel2_rb;
     spr_wheel_body.end_rel = Toad::Vec2f{15, 5};
     sim.springs.emplace_back(spr_wheel_body);
-    sim.polygons[index_car_wheel2].extra_points.emplace_back(&sim.springs.back().start_rel);
-    sim.polygons[index_car_body].extra_points.emplace_back(&sim.springs.back().end_rel);
+    sim.polygons[index_car_wheel2].attached_spring_points.emplace_back(sim.springs.size() - 1, false);
+    sim.polygons[index_car_body].attached_spring_points.emplace_back(sim.springs.size() - 1, true);
 
     // extra springs 
     // spr_wheel_body.stiffness = 1.f;
@@ -130,30 +132,30 @@ void CarEnvironmentLoad()
     spr_wheel_body.end_rel = Toad::Vec2f{0,8};
     spr_wheel_body.target_len = fz::dist(car_wheel1_rb.center, car_body_rb.center + spr_wheel_body.end_rel);
     sim.springs.emplace_back(spr_wheel_body);
-    sim.polygons[index_car_wheel1].extra_points.emplace_back(&sim.springs.back().start_rel);
-    sim.polygons[index_car_body].extra_points.emplace_back(&sim.springs.back().end_rel);
+    sim.polygons[index_car_wheel1].attached_spring_points.emplace_back(sim.springs.size() - 1, false);
+    sim.polygons[index_car_body].attached_spring_points.emplace_back(sim.springs.size() - 1, true);
 
     // wheel 2 extra 1
     spr_wheel_body.start_rb = &car_wheel2_rb;
     spr_wheel_body.end_rel = Toad::Vec2f{0,8};
     sim.springs.emplace_back(spr_wheel_body);
-    sim.polygons[index_car_wheel2].extra_points.emplace_back(&sim.springs.back().start_rel);
-    sim.polygons[index_car_body].extra_points.emplace_back(&sim.springs.back().end_rel);
+    sim.polygons[index_car_wheel2].attached_spring_points.emplace_back(sim.springs.size() - 1, false);
+    sim.polygons[index_car_body].attached_spring_points.emplace_back(sim.springs.size() - 1, true);
 
     // wheel 1 extra 2
     spr_wheel_body.start_rb = &car_wheel1_rb;
     spr_wheel_body.end_rel = Toad::Vec2f{-25,5};
     spr_wheel_body.target_len = fz::dist(car_wheel1_rb.center, car_body_rb.center + spr_wheel_body.end_rel);
     sim.springs.emplace_back(spr_wheel_body);
-    sim.polygons[index_car_wheel1].extra_points.emplace_back(&sim.springs.back().start_rel);
-    sim.polygons[index_car_body].extra_points.emplace_back(&sim.springs.back().end_rel);
+    sim.polygons[index_car_wheel1].attached_spring_points.emplace_back(sim.springs.size() - 1, false);
+    sim.polygons[index_car_body].attached_spring_points.emplace_back(sim.springs.size() - 1, true);
 
     // wheel 2 extra 2
     spr_wheel_body.start_rb = &car_wheel2_rb;
     spr_wheel_body.end_rel = Toad::Vec2f{25,5};
     sim.springs.emplace_back(spr_wheel_body);
-    sim.polygons[index_car_wheel2].extra_points.emplace_back(&sim.springs.back().start_rel);
-    sim.polygons[index_car_body].extra_points.emplace_back(&sim.springs.back().end_rel);
+    sim.polygons[index_car_wheel2].attached_spring_points.emplace_back(sim.springs.size() - 1, false);
+    sim.polygons[index_car_body].attached_spring_points.emplace_back(sim.springs.size() - 1, true);
 }
 
 void CarEnvironmentUpdate(float gas)

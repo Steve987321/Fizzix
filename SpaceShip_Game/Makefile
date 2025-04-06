@@ -103,6 +103,7 @@ GENERATED += $(OBJDIR)/Lexer.o
 GENERATED += $(OBJDIR)/Parser.o
 GENERATED += $(OBJDIR)/PhysGun.o
 GENERATED += $(OBJDIR)/PhysObj.o
+GENERATED += $(OBJDIR)/RocketEnvironment.o
 GENERATED += $(OBJDIR)/ScriptRegister.o
 GENERATED += $(OBJDIR)/Sim.o
 GENERATED += $(OBJDIR)/SimLib.o
@@ -130,6 +131,7 @@ OBJECTS += $(OBJDIR)/Lexer.o
 OBJECTS += $(OBJDIR)/Parser.o
 OBJECTS += $(OBJDIR)/PhysGun.o
 OBJECTS += $(OBJDIR)/PhysObj.o
+OBJECTS += $(OBJDIR)/RocketEnvironment.o
 OBJECTS += $(OBJDIR)/ScriptRegister.o
 OBJECTS += $(OBJDIR)/Sim.o
 OBJECTS += $(OBJDIR)/SimLib.o
@@ -247,6 +249,9 @@ $(OBJDIR)/PhysObj.o: src/assets/PhysGameObj/PhysObj.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/CarEnvironment.o: src/assets/SimEnvironments/CarEnvironment.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/RocketEnvironment.o: src/assets/SimEnvironments/RocketEnvironment.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Compiler.o: src/assets/Toot/Compiler/Compiler.cpp

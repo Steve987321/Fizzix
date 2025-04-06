@@ -26,13 +26,14 @@ class GAME_API Sim : public Toad::Script
 public:
 	SCRIPT_CONSTRUCT(Sim)
     
+	static fz::Sim& GetSim();
+	static void SetDefaultScene(fz::Sim& sim);
+
 	void OnStart(Toad::Object* obj) override;
 	void OnUpdate(Toad::Object* obj) override;
 	void OnFixedUpdate(Toad::Object* obj) override;
 	void OnRender(Toad::Object* obj, sf::RenderTarget& target) override;
 	void ExposeVars() override;
-
-	static fz::Sim& GetSim();
 
 	bool pause_sim = false;
 	inline static float d_y = 0;

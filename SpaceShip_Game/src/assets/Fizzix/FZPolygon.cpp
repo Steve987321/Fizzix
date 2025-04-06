@@ -3,11 +3,18 @@
 #include "FZPolygon.h"
 #include "FZMath.h"
 
+#include "FZSim.h"
+
 namespace fz
 {
     std::array<Toad::Vec2f, 6> CreateSquare(float size_x, float size_y)
     {
         return std::array<Toad::Vec2f, 6>({{0, size_y}, {size_x, size_y}, {size_x, 0}, {0, size_y}, {size_x, 0},  {0, 0}});
+    }
+
+    std::array<Toad::Vec2f, 6> CreateSquare(const Toad::Vec2f& start, const Toad::Vec2f& end)
+    {
+        return std::array<Toad::Vec2f, 6>({{start.x, end.y}, {end.x, end.y}, {end.x, start.y}, {start.x, end.y}, {end.x, start.y},  {start.x, start.y}});
     }
 
     Polygon::Polygon(const std::vector<Toad::Vec2f>& points)
@@ -45,7 +52,7 @@ namespace fz
 
     void Polygon::Translate(const Toad::Vec2f& offset)
     {
-        for (auto& v : vertices)
+        for (Toad::Vec2f& v : vertices)
             v += offset;
         rb.center = rb.center + offset;
     }
@@ -63,8 +70,14 @@ namespace fz
             v.y = rb.center.y + x * s + y * c;
         }
 
-        for (Toad::Vec2f* v : extra_points)
+        for (auto& [i, is_end]: attached_spring_points)
         {
+            Toad::Vec2f* v = nullptr;
+            if (is_end)
+                v = &sim->springs[i].end_rel;
+            else 
+                v = &sim->springs[i].start_rel;
+
             float x = v->x;
             v->x = x * c - v->y * s;
             v->y = x * s + v->y * c;
