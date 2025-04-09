@@ -2,6 +2,8 @@
 
 #include "engine/Types.h"
 
+// #TODO: Most of these have been implemented in the Vec2 type 
+
 namespace fz
 {
     inline float length(const Toad::Vec2f& v)

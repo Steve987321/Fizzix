@@ -562,7 +562,6 @@ static VMRegister Identifier()
         Token* prev = PeekPreviousToken();
         if (!prev || !IsTokenNumKeyword(*prev))
         {
-            // probably a function call or something else
             return PlusMinus();
         }
         if (prev && IsTokenNumKeyword(*prev))

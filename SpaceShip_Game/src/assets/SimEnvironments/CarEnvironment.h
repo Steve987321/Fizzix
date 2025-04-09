@@ -1,6 +1,6 @@
 #pragma once 
 
-inline const char* CarControllerScript = 
+inline const char* car_controller_script = 
 R"(// Car controller script
 // Use A and D to rotate the wheels
 // Space is crouch?

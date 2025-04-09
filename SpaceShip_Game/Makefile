@@ -96,6 +96,7 @@ GENERATED += $(OBJDIR)/FZRigidbody.o
 GENERATED += $(OBJDIR)/FZSim.o
 GENERATED += $(OBJDIR)/FZSpring.o
 GENERATED += $(OBJDIR)/FZThruster.o
+GENERATED += $(OBJDIR)/FizzixMenu.o
 GENERATED += $(OBJDIR)/Framework.o
 GENERATED += $(OBJDIR)/Game.o
 GENERATED += $(OBJDIR)/IO.o
@@ -108,6 +109,7 @@ GENERATED += $(OBJDIR)/ScriptRegister.o
 GENERATED += $(OBJDIR)/Sim.o
 GENERATED += $(OBJDIR)/SimLib.o
 GENERATED += $(OBJDIR)/TVM.o
+GENERATED += $(OBJDIR)/TVMMenu.o
 GENERATED += $(OBJDIR)/Thruster.o
 GENERATED += $(OBJDIR)/imgui-SFML.o
 GENERATED += $(OBJDIR)/imgui.o
@@ -124,6 +126,7 @@ OBJECTS += $(OBJDIR)/FZRigidbody.o
 OBJECTS += $(OBJDIR)/FZSim.o
 OBJECTS += $(OBJDIR)/FZSpring.o
 OBJECTS += $(OBJDIR)/FZThruster.o
+OBJECTS += $(OBJDIR)/FizzixMenu.o
 OBJECTS += $(OBJDIR)/Framework.o
 OBJECTS += $(OBJDIR)/Game.o
 OBJECTS += $(OBJDIR)/IO.o
@@ -136,6 +139,7 @@ OBJECTS += $(OBJDIR)/ScriptRegister.o
 OBJECTS += $(OBJDIR)/Sim.o
 OBJECTS += $(OBJDIR)/SimLib.o
 OBJECTS += $(OBJDIR)/TVM.o
+OBJECTS += $(OBJDIR)/TVMMenu.o
 OBJECTS += $(OBJDIR)/Thruster.o
 OBJECTS += $(OBJDIR)/imgui-SFML.o
 OBJECTS += $(OBJDIR)/imgui.o
@@ -273,6 +277,12 @@ $(OBJDIR)/SimLib.o: src/assets/Toot/TVM/Lib/SimLib.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/TVM.o: src/assets/Toot/TVM/TVM.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FizzixMenu.o: src/assets/UI/FizzixMenu.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/TVMMenu.o: src/assets/UI/TVMMenu.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Framework.o: src/assets/framework/Framework.cpp

@@ -22,20 +22,8 @@ namespace fz
     {
         UpdateNormals();
         UpdateCentroid();
-
-        float inertia = 0.0f;
-        size_t vertices_count = vertices.size();
-
-        for (size_t i = 0; i < vertices_count; i++) 
-        {
-            Toad::Vec2f v1 = vertices[i];
-            Toad::Vec2f v2 = vertices[(i + 1) % vertices_count];
-            
-            float r1 = length(v1 - rb.center);
-            float r2 = length(v2 - rb.center);
-            inertia += (r1 * r1 + r2 * r2 + r1 * r2);
-        }
-        rb.moment_of_inertia = inertia;
+        // requires the updated centroid
+        UpdateMomentOfInertia(rb.center);
     }
 
     void Polygon::UpdateNormals()
@@ -86,15 +74,16 @@ namespace fz
         UpdateNormals();
     }
 
+    // https://lexrent.eu/wp-content/uploads/torza/artikel_groep_sub_2_docs/BYZ_3_Polygon-Area-and-Centroid.pdf
     void Polygon::UpdateCentroid()
     {
         float area = 0;
         float cx = 0, cy = 0;
-        int vertices_count = vertices.size();
+        size_t vertices_count = vertices.size();
 
-        for (int i = 0; i < vertices_count; i++)
+        for (size_t i = 0; i < vertices_count; i++)
         {
-            int j = (i + 1) % vertices_count;
+            size_t j = (i + 1) % vertices_count;
             float c = cross(vertices[i], vertices[j]);
             area += c;
             cx += (vertices[i].x + vertices[j].x) * c;
@@ -106,7 +95,28 @@ namespace fz
         if (std::abs(area) < FLT_EPSILON)
             return;
 
-        rb.center = Toad::Vec2f(cx / (6 * area), cy / (6 * area));
+        area = 1 / (6 * area);
+        rb.center = Toad::Vec2f(area * cx, area * cy);
+    }
+
+    void Polygon::UpdateMomentOfInertia(const Toad::Vec2f& center)
+    {
+        float inertia = 0.0f;
+        size_t vertices_count = vertices.size();
+
+        for (size_t i = 0; i < vertices_count; i++) 
+        {
+            size_t j = (i + 1) % vertices_count;
+            Toad::Vec2f v1 = vertices[i];
+            Toad::Vec2f v2 = vertices[j];
+            Toad::Vec2f triangle_center = (v1 + v2 + center) / 3.f;
+
+            float r1 = length(v1 - center);
+            float r2 = length(v2 - center);
+            inertia += (r1 * r1 + r2 * r2 + r1 * r2);
+        }
+
+        rb.moment_of_inertia = inertia;
     }
 
     bool Polygon::ContainsPoint(const Toad::Vec2f &point)

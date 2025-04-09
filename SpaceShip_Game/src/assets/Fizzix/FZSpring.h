@@ -3,6 +3,7 @@
 
 namespace fz
 {
+    // #todo: this is not very stable
     class Spring
     {
     public:
