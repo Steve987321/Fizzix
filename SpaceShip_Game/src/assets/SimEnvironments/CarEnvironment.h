@@ -1,5 +1,7 @@
 #pragma once 
 
+// #TODO: serialize environments in config files 
+
 inline const char* car_controller_script = 
 R"(// Car controller script
 // Use A and D to rotate the wheels
