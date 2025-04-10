@@ -2,6 +2,8 @@
 
 WIP. 
 
+Project made for Engine2D: https://github.com/Steve987321/Engine2D
+
 Assets directory structure: 
 
 ```
