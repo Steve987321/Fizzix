@@ -1,5 +1,8 @@
 #pragma once 
 
+namespace SimEnvironments
+{
+
 // #TODO: serialize environments in config files 
 
 inline const char* car_controller_script = 
@@ -59,3 +62,5 @@ CEApplyGas(gas);
 void CarEnvironmentLoad();
 void CarEnvironmentUpdate(float gas);
 void CarEnvironmentImGui();
+
+}

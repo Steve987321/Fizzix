@@ -2,5 +2,5 @@
 
 namespace UI
 {
-    void FizzixMenu(fz::Sim& sim, char* source, bool& env_car_loaded, bool& pause_sim);
+    void FizzixMenu(fz::Sim& sim, char* source, bool& env_car_loaded, bool& env_stress_test_loaded, bool& pause_sim);
 }

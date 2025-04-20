@@ -16,6 +16,7 @@
 #include "UI/TVMMenu.h"
 
 #include "SimEnvironments/CarEnvironment.h"
+#include "SimEnvironments/StressTestEnvironment.h"
 
 using namespace Toad;
 
@@ -34,6 +35,7 @@ static bool add_potential_spring = false;
 static bool add_potential_square = false;
 
 static bool env_car_loaded = false;
+static bool env_stress_test_loaded = false;
 
 static void OnMousePress(sf::Mouse::Button mouse)
 {
@@ -84,6 +86,8 @@ void Sim::SetDefaultScene(fz::Sim &sim)
 void Sim::OnStart(Object* obj)
 {
 	Script::OnStart(obj);
+
+	Time::SetFixedDeltaTime(0.01f);
 
 #if defined(TOAD_EDITOR) || !defined(NDEBUG)
 	txt_to_draw.clear();
@@ -193,28 +197,28 @@ void Sim::OnUpdate(Object* obj)
 		}
 	}
 
-	int i = 0;
+	// int i = 0;
 	for (const fz::Spring& spr : sim.springs)
 	{
 		Vec2f a = spr.start_rb->center + spr.start_rel;
 		Vec2f b = spr.end_rb->center + spr.end_rel;
 		DrawingCanvas::DrawArrow(a, (b - a), 1.f);
-		std::ostringstream ss;
-		ss << i;
-		DrawingCanvas::DrawText((a + b) / 2.f, ss.str(), 7.f);
-		i++;
+	// std::ostringstream ss;
+	// 	ss << i;
+	// 	DrawingCanvas::DrawText((a + b) / 2.f, ss.str(), 7.f);	
+		// i++;
 	}
 
-	if (Input::IsKeyDown(Keyboard::D))
-	{
-		if (sim.polygons[0].rb.angular_velocity < 10.f)
-			sim.polygons[0].rb.angular_velocity += 10.f * Time::GetDeltaTime();
-	}
-	if (Input::IsKeyDown(Keyboard::A))
-	{
-		if (sim.polygons[0].rb.angular_velocity > -10.f)
-			sim.polygons[0].rb.angular_velocity -= 10.f * Time::GetDeltaTime();
-	}
+	// if (Input::IsKeyDown(Keyboard::D))
+	// {
+	// 	if (sim.polygons[0].rb.angular_velocity < 10.f)
+	// 		sim.polygons[0].rb.angular_velocity += 10.f * Time::GetDeltaTime();
+	// }
+	// if (Input::IsKeyDown(Keyboard::A))
+	// {
+	// 	if (sim.polygons[0].rb.angular_velocity > -10.f)
+	// 		sim.polygons[0].rb.angular_velocity -= 10.f * Time::GetDeltaTime();
+	// }
 
 	if (add_potential_spring && lmouse_released)
 		add_potential_spring = false;
@@ -227,7 +231,7 @@ void Sim::OnUpdate(Object* obj)
 	rmouse_released = false;
 
 	if (env_car_loaded)
-		CarEnvironmentUpdate(env_car_gas * Time::GetDeltaTime());
+		SimEnvironments::CarEnvironmentUpdate(env_car_gas * Time::GetDeltaTime());
 }
 
 void Sim::OnFixedUpdate(Object* obj)
@@ -270,7 +274,10 @@ void Sim::OnImGui(Object* obj, ImGuiContext* ctx)
 	ImGui::SetCurrentContext(ctx);
 	static char source[1024];
 
-    UI::FizzixMenu(sim, source, env_car_loaded, pause_sim);
+    UI::FizzixMenu(sim, source, env_car_loaded, env_stress_test_loaded, pause_sim);
     UI::TVMMenu(vm, run_vm, source);
+
+	if (env_stress_test_loaded)
+		SimEnvironments::StressTestImGui(*this);
 }
 #endif 

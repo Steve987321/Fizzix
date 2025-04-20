@@ -2,28 +2,41 @@
 #include "framework/Framework.h"
 #include "Fizzix/FZSim.h"
 #include "SimEnvironments/CarEnvironment.h"
+#include "SimEnvironments/StressTestEnvironment.h"
 #include "scripts/Sim.h"
 
 namespace UI
 {
-    void FizzixMenu(fz::Sim& sim, char* source, bool& env_car_loaded, bool& pause_sim)
+    void FizzixMenu(fz::Sim& sim, char* source, bool& env_car_loaded, bool& env_stress_test_loaded, bool& pause_sim)
     { 
         using namespace Toad;
 
         ImGui::Begin("[Sim] fizzix menu");
 
-        if (ImGui::Button("LoadCarScene"))
+        if (ImGui::Button("Load CarScene"))
         {
             env_car_loaded = true;
-            CarEnvironmentLoad();
+            env_stress_test_loaded = false;
+            SimEnvironments::CarEnvironmentLoad();
             DrawingCanvas::ClearVertices();
 
             // copy default script to source 
-            strncpy(source, car_controller_script, strlen(car_controller_script) + 1);
+            strncpy(source, SimEnvironments::car_controller_script, strlen(SimEnvironments::car_controller_script) + 1);
 
             for (fz::Polygon& p : sim.polygons)
                 DrawingCanvas::AddVertexArray(p.vertices.size());
         }
+        if (ImGui::Button("Load StressTest"))
+        {
+            env_car_loaded = false;
+            env_stress_test_loaded = true;
+            SimEnvironments::StressTestEnvironmentLoad(0);
+
+            DrawingCanvas::ClearVertices();
+            for (fz::Polygon& p : sim.polygons)
+                DrawingCanvas::AddVertexArray(p.vertices.size());
+        }
+
         if (ImGui::Button("Clear"))
         {
             sim.polygons.clear();

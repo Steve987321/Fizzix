@@ -12,6 +12,9 @@ static size_t index_car_body = 0;
 static size_t index_car_wheel1 = 0;
 static size_t index_car_wheel2 = 0;
 
+namespace SimEnvironments
+{
+
 void CarEnvironmentLoad()
 {
     // #TODO: use sim.AddSpring
@@ -170,4 +173,6 @@ void CarEnvironmentUpdate(float gas)
 
     sim.polygons[index_car_wheel1].rb.angular_velocity += gas;
     sim.polygons[index_car_wheel2].rb.angular_velocity += gas;
+}
+
 }
