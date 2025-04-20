@@ -64,8 +64,8 @@ TARGETDIR = ../bin/Dev-macosx-x86_64
 TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
 OBJDIR = ../bin-intermediate/Dev-macosx-x86_64
 DEFINES += -DNDEBUG -D_USRDLL -DGAME_IS_EXPORT -DTOAD_EDITOR
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++20
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -std=c++20
 
 else ifeq ($(config),devdebug)
 TARGETDIR = ../bin/DevDebug-macosx-x86_64
@@ -108,6 +108,7 @@ GENERATED += $(OBJDIR)/RocketEnvironment.o
 GENERATED += $(OBJDIR)/ScriptRegister.o
 GENERATED += $(OBJDIR)/Sim.o
 GENERATED += $(OBJDIR)/SimLib.o
+GENERATED += $(OBJDIR)/StressTestEnvironment.o
 GENERATED += $(OBJDIR)/TVM.o
 GENERATED += $(OBJDIR)/TVMMenu.o
 GENERATED += $(OBJDIR)/Thruster.o
@@ -138,6 +139,7 @@ OBJECTS += $(OBJDIR)/RocketEnvironment.o
 OBJECTS += $(OBJDIR)/ScriptRegister.o
 OBJECTS += $(OBJDIR)/Sim.o
 OBJECTS += $(OBJDIR)/SimLib.o
+OBJECTS += $(OBJDIR)/StressTestEnvironment.o
 OBJECTS += $(OBJDIR)/TVM.o
 OBJECTS += $(OBJDIR)/TVMMenu.o
 OBJECTS += $(OBJDIR)/Thruster.o
@@ -256,6 +258,9 @@ $(OBJDIR)/CarEnvironment.o: src/assets/SimEnvironments/CarEnvironment.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/RocketEnvironment.o: src/assets/SimEnvironments/RocketEnvironment.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/StressTestEnvironment.o: src/assets/SimEnvironments/StressTestEnvironment.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Compiler.o: src/assets/Toot/Compiler/Compiler.cpp

@@ -114,7 +114,7 @@ end
         }
         
         runtime "Release"
-        symbols "Off"
+        symbols "On"
         optimize "On"
 
     -- ?? ??? ? DELET?? ?? ??
