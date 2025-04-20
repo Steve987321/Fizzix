@@ -113,7 +113,6 @@ namespace fz
         // get contact point 
         contacts.clear();
         ClipPolygon(a, b, contacts);
-        ClipPolygon(b, a, contacts);
         
         if (!contacts.empty())
         {
@@ -188,18 +187,10 @@ namespace fz
         if (abs(mass_sum) <= FLT_EPSILON)
             return;
 
-        float move_a = (b.mass / mass_sum) * penetration;
-        float move_b = (a.mass / mass_sum) * penetration;
+        Vec2f diff_a = contact - a.center;
+        Vec2f diff_b = contact - b.center;
 
-        if (!a.is_static)
-            a.center -= normal * move_a;
-        if (!b.is_static)
-            b.center += normal * move_b;
-
-        Toad::Vec2f diff_a = contact - a.center;
-        Toad::Vec2f diff_b = contact - b.center;
-
-        Toad::Vec2f rel_vel = b.velocity - a.velocity;
+        Vec2f rel_vel = b.velocity - a.velocity;
         float vel_along_normal = dot(rel_vel, normal);
 
         if (vel_along_normal > 0) 
