@@ -101,8 +101,8 @@ namespace UI
                 ImGui::SliderFloat("Friction", &rb.friction, 0.0f, 1.f);
                 
                 ImGui::Text("Center(%.2f, %.2f) Resting(%d) Slide(%.2f)", rb.center.x, rb.center.y, rb.resting, rb.slide);
-                ImGui::Text("Angular(%.2f) AngularAvg(%.2f)", rb.angular_velocity, rb.angular_velocity_average);
-                ImGui::Text("Vel(%.2f, %.2f) VelLength(%.3f) AbsVelAvg(%.2f, %.2f)", rb.velocity.x, rb.velocity.y, rb.velocity.Length(), rb.velocity_average.x, rb.velocity_average.y);
+                ImGui::Text("Angular(%.2f)", rb.angular_velocity);
+                ImGui::Text("Vel(%.2f, %.2f) VelLength(%.3f)", rb.velocity.x, rb.velocity.y, rb.velocity.Length());
                 for (auto& f : sim.polygons[i].vertices)
                 {
                     ImGui::Text("%.1f, %.1f", f.x, f.y);

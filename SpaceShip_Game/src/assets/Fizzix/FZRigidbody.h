@@ -2,12 +2,6 @@
 
 namespace fz
 {
-    struct HistoryData
-    {
-        Toad::Vec2f velocity;
-        float angular_velocity;
-    };
-
     class Rigidbody
     {
     public:
@@ -26,14 +20,7 @@ namespace fz
         Toad::Vec2f center {0, 0};
         Toad::Vec2f center_correction {0, 0};
 
-        Toad::Vec2f velocity_average {0, 0};
-        float angular_velocity_average = 0;
-
         float friction = 0.f;
-
         float slide = 0.f;
-    private:
-        std::deque<HistoryData> velocities {};
-        float time = 0;
     };
 }

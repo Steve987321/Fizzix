@@ -255,7 +255,7 @@ namespace fz
             if (!a.is_static || !a.resting) 
             {
                 a.center_correction = -correction;
-                if (a.velocity_average.Length() < 0.3f && a.angular_velocity_average < 0.1f)
+                if (a.velocity.Length() < 0.3f && a.angular_velocity < 0.1f)
                 {
                     a.resting = true;
                 }
@@ -263,7 +263,7 @@ namespace fz
             if (!b.is_static || !b.resting)
             {
                 b.center_correction = correction;
-                if (b.velocity_average.Length() < 0.3f && b.angular_velocity_average < 0.1f)
+                if (b.velocity.Length() < 0.3f && b.angular_velocity < 0.1f)
                     b.resting = true;
             }
         }
