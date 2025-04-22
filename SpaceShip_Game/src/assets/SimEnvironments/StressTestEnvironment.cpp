@@ -64,17 +64,31 @@ namespace SimEnvironments
         // ImGui::TextColored({0, std::max(1.f, min_fps / fps_threshold), 0, 1}, "FPS min %.1f", min_fps);
         static size_t polygon_add_counter = 0;
         ImGui::Text("%lu", polygon_add_counter);
+
+        static float mass = 1.f;
+        static float friction = 1.f;
+        static float shoot_delay = 0.1f;
+        if (ImGui::Button("Clear"))
+        {
+            Toad::DrawingCanvas::ClearVertices();
+            s.polygons.clear();
+        }
+        ImGui::DragFloat("mass", &mass);
+        ImGui::SliderFloat("friction", &friction, 0, 1);
+        ImGui::DragFloat("shoot delay", &shoot_delay, 0.05f);
+
         if (shoot)
         {
             time += dt;
-            if (time > 0.1f)
+            if (time > shoot_delay)
             {
                 fz::Polygon p({square_vertices.begin(), square_vertices.end()});
                 p.Translate({0, -100});
-                float r = ImSin(ImGui::GetTime());
+                float r = ImSin(ImGui::GetTime() * 1.5f);
                 p.rb.velocity.y = 50.f;
-                p.rb.velocity.x = r * 50.f;
-                p.rb.mass = 1.f;
+                p.rb.velocity.x = r * 100.f;
+                p.rb.mass = mass;
+                p.rb.friction = friction;
                 s.AddPolygon(p);
 				Toad::DrawingCanvas::AddVertexArray(square_vertices.size());
                 time = 0;
