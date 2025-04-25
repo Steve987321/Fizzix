@@ -66,7 +66,8 @@ if _OPTIONS["usesrc"] then
         "vendor/SFML-2.6.0/include",
         "vendor/json/include",
         "%{prj.name}/src",
-        "%{prj.name}/src/assets"
+        "%{prj.name}/src/assets",
+        "%{prj.name}/src/assets/Toot",
     }
     libdirs{
         engine_path .. "/bin/Release-%{cfg.system}-x86_64",
@@ -81,6 +82,7 @@ else
         "vendor/json/include",
         "%{prj.name}/src",
         "%{prj.name}/src/assets",
+        "%{prj.name}/src/assets/Toot",
     }
     libdirs{
         engine_path .. "/libs",

@@ -28,7 +28,7 @@ ifeq ($(origin AR), default)
   AR = ar
 endif
 RESCOMP = windres
-INCLUDES += -I../../../Steve987321/Engine2D/Engine/src -I../vendor -I../vendor/imgui -I../vendor/SFML-2.6.0/include -I../vendor/json/include -Isrc -Isrc/assets
+INCLUDES += -I../../../Steve987321/Engine2D/Engine/src -I../vendor -I../vendor/imgui -I../vendor/SFML-2.6.0/include -I../vendor/json/include -Isrc -Isrc/assets -Isrc/assets/Toot
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)

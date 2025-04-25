@@ -3,7 +3,7 @@
 #include "Lexer.h"
 #include <vector>
 #include <set>
-#include "Toot/TVM/TVM.h"
+#include "TVM/TVM.h"
 
 inline std::unordered_map<OP_CODE, std::string> op_code_names
 {
@@ -18,6 +18,7 @@ inline std::unordered_map<OP_CODE, std::string> op_code_names
     {OP_CODE::OP_CALL, "OP_CALL"},
     {OP_CODE::OP_CALL_MOVE, "OP_CALL_MOVE"},
 	{OP_CODE::OP_JUMP, "OP_JUMP"},
+	{OP_CODE::OP_JUMP_ONCE, "OP_JUMP_ONCE"},
     {OP_CODE::OP_JUMP_IF_NOT_EQUAL, "OP_JUMP_IF_NOT_EQUAL"},
     {OP_CODE::OP_JUMP_IF_EQUAL, "OP_JUMP_IF_EQUAL"},
     {OP_CODE::OP_JUMP_IF_LESS, "OP_JUMP_IF_LESS"},

@@ -119,7 +119,7 @@ namespace fz
         rb.moment_of_inertia = inertia;
     }
 
-    bool Polygon::ContainsPoint(const Toad::Vec2f &point)
+    bool Polygon::ContainsPoint(const Toad::Vec2f& point)
     {
         int vertices_count = vertices.size();
         bool inside = false;
