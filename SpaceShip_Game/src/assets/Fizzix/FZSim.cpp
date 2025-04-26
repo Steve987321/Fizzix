@@ -9,8 +9,6 @@ namespace fz
 {
     using namespace Toad; 
 
-    static std::vector<Vec2f> contacts;
-
     static bool LineLineIntersection(const Vec2f& p1, const Vec2f& p2, const Vec2f& q1, const Vec2f& q2, Vec2f& intersection)
     {
         Vec2f r = p2 - p1;
@@ -37,8 +35,9 @@ namespace fz
     }
 
     // find contacts between all edges of a and b 
-    static void ClipPolygon(const Polygon& a, const Polygon& b, std::vector<Vec2f>& contacts)
+    static size_t ClipPolygon(const Polygon& a, const Polygon& b, Vec2f& contact)
     {
+        size_t intersection_count = 0;
         for (size_t i = 0; i < a.vertices.size(); i++)
         {
             size_t j = (i + 1) % a.vertices.size();
@@ -55,9 +54,16 @@ namespace fz
 
                 Vec2f intersection;
                 if (LineLineIntersection(p1, p2, q1, q2, intersection))
-                    contacts.push_back(intersection);
+                {
+                    contact += intersection;
+                    intersection_count++;
+                }
             }
         }
+
+        contact /= intersection_count;
+        
+        return intersection_count;
     }
 
     static void ProjectPolygon(const Polygon& p, const Vec2f& axis, float& min, float& max)
@@ -127,20 +133,11 @@ namespace fz
         penetration = min_penetration;
     
         // get contact point 
-        contacts.clear();
-        ClipPolygon(a, b, contacts);
+        size_t contact_count = ClipPolygon(a, b, contact);
         
-        if (!contacts.empty())
+        if (contact_count == 0)
         {
-            contact = Vec2f{0, 0};
-            for (const Vec2f& pt : contacts)
-                contact += pt;
-
-            contact /= (float)contacts.size();
-        }
-        else
-        {
-             // falback
+            // fallback
             contact = (a.rb.center + b.rb.center) * 0.5f;
         }
     
@@ -161,17 +158,24 @@ namespace fz
         {
             for (int j = i + 1; j < polygons.size(); j++)
             {
-                bool collide = SAT(polygons[i], polygons[j], normal, penetration, contact);
+                Polygon& a = polygons[i];
+                Polygon& b = polygons[j];
+
+                if (a.rb.is_static && b.rb.is_static)
+                    continue;
+                if (a.rb.is_sleeping && b.rb.is_sleeping)
+                    continue;
+
+                bool collide = SAT(a, b, normal, penetration, contact);
                 
                 // DrawText("Collision: {}", collide);
                 // DrawText("Penetration: {}", penetration);
-
                 // DrawingCanvas::DrawArrow(contact, normal * 10.f, 0.5f);
 
                 if (collide) 
                 {
                     // for (int k = 0; k < 10; k++)
-                    Resolve(polygons[i].rb, polygons[j].rb, contact, normal, penetration); 
+                    Resolve(a.rb, b.rb, contact, normal, penetration); 
                 }
             }
         }
@@ -217,71 +221,41 @@ namespace fz
 
         Vec2f impulse = normal * j;
 
-        if (!a.is_static)
-            a.velocity -= impulse / a.mass;
-        if (!b.is_static)
-            b.velocity += impulse / b.mass;
-
-        // detect sliding and use friction 
-        Vec2f perp = {-normal.y, normal.x};
-        
-        // DrawingCanvas::DrawArrow(contact, perp * 10, 1.f);
-        // a.slide = dot(perp, normalize(a.velocity));
-        // b.slide = dot(perp, normalize(b.velocity));
-        // // LOGDEBUGF("PERP: {},{} {},{} A {} B {}",perp.x, perp.y, a.velocity.x, a.velocity.y, vel_perp_a, vel_perp_b);
-        // a.velocity += a.slide * a.friction;
-        // b.velocity -= b.slide * b.friction;
-        // // DrawText("{} {}", a.slide, a.friction);
-
-        // a.velocity *= a.friction;
-        // b.velocity *= b.friction;
+        a.velocity -= impulse / a.mass;
+        b.velocity += impulse / b.mass;
 
         float torque_a = cross(diff_a, impulse); 
         float torque_b = cross(diff_b, impulse);
 
-        if (!a.is_static)
+        Vec2f perp = {-normal.y, normal.x};
+        a.angular_velocity -= torque_a / a.moment_of_inertia;
+        const float angular_velocity_factor = 10.f;
+        Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
+        float grip = std::max(penetration, 1.1f) * ((a.friction + b.friction) / 2.f);
+        a.velocity -= vel_rot_diff * grip;
+
+        b.angular_velocity += torque_b / b.moment_of_inertia;
+        vel_rot_diff = b.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
+        b.velocity -= vel_rot_diff * grip;
+
+        Vec2f correction = normal * (penetration * 0.5f);
+        // DrawText("CORRECTING: {} {}", correction.x, correction.y);
+        
+        // apply corection and also check for resting
+        // #todo change resting check 
+        if (a.is_sleeping)
         {
-            a.angular_velocity -= torque_a / a.moment_of_inertia;
-            
-            const float angular_velocity_factor = 10.f;
-            Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-            float grip = std::max(penetration, 1.1f) * ((a.friction + b.friction) / 2.f);
-
-            a.velocity -= vel_rot_diff * grip;
+            a.sleeping_ticks = 0;
+            a.is_sleeping = false;
         }
-        if (!b.is_static)
+        if (!b.is_sleeping)
         {
-            b.angular_velocity += torque_b / b.moment_of_inertia;
-
-            const float angular_velocity_factor = 10.f;
-            Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-            float grip = std::max(penetration, 1.1f) * ((a.friction + b.friction) / 2.f);
-
-            a.velocity -= vel_rot_diff * grip;
+            b.sleeping_ticks = 0;
+            b.is_sleeping = false;       
         }
 
-        if (penetration > 0.01f)
-        {
-            Vec2f correction = normal * (penetration * 0.5f);
-            // DrawText("CORRECTING: {} {}", correction.x, correction.y);
-            
-            // apply corection and also check for resting
-            // #todo change resting check 
-            if (!a.is_static || !a.resting) 
-            {
-                a.center_correction = -correction;
-                if (a.velocity.Length() < 0.3f && a.angular_velocity < 0.1f)
-                {
-                    a.resting = true;
-                }
-            }
-            if (!b.is_static || !b.resting)
-            {
-                b.center_correction = correction;
-                if (b.velocity.Length() < 0.3f && b.angular_velocity < 0.1f)
-                    b.resting = true;
-            }
-        }
+        a.center_correction = -correction;
+        b.center_correction = correction;
     }
 
     fz::Polygon& Sim::AddPolygon(fz::Polygon &polygon)
