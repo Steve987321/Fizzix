@@ -68,7 +68,7 @@ void Sim::SetDefaultScene(fz::Sim &sim)
 	fz::Polygon sim_player({player_vertices.begin(), player_vertices.end()});
 	sim_player.Translate({10, -50});
 	sim_player.rb.angular_damping = 1.f;
-	sim_player.rb.mass = 20.f;
+	sim_player.rb.inv_mass = 1.f / 20.f;
 	sim_player.rb.restitution = 0.5f;
 	sim_player.rb.friction = 1.f;
 
@@ -187,7 +187,7 @@ void Sim::OnUpdate(Object* obj)
 
 		DrawingCanvas::DrawArrow(curr_polygon.rb.center, curr_polygon.rb.velocity, 1.f);
 		
-		Color color(255 - (uint8_t)curr_polygon.rb.mass * 2, 255, 255, 255);
+		Color color((uint8_t)curr_polygon.rb.inv_mass * 100, 255, 255, 255);
 		for (int j = 0; j < curr_polygon.vertices.size(); j++)
 		{
 			sf::Vertex v;
@@ -236,10 +236,8 @@ void Sim::OnUpdate(Object* obj)
 
 void Sim::OnFixedUpdate(Object* obj)
 {
-	d_y = sim.polygons[0].rb.center.y;
 	if (!pause_sim)
 		sim.Update(Time::GetFixedDeltaTime());
-	d_y = sim.polygons[0].rb.center.y - d_y;
 
 	if (run_vm)
 	{

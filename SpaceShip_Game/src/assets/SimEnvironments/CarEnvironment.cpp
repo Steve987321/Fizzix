@@ -42,36 +42,38 @@ void CarEnvironmentLoad()
         terrain.rb.is_static = true;
         terrain.rb.friction = 1.f;
         terrain.rb.restitution = 0.f;
-        terrain.rb.mass = 0.1f;
+        terrain.rb.inv_mass = 1.f;
 
         fz::Polygon car_body({body_vertices.begin(), body_vertices.end()});
         car_body.Translate({10, -50});
-        car_body.rb.mass = 10.f;
+        car_body.rb.inv_mass = 1.f / 10.f;
 
         fz::Polygon car_wheel1({wheel_vertices.begin(), wheel_vertices.end()});
         car_wheel1.Translate({15, -20});
         car_wheel1.rb.friction = 1.f;
-        car_wheel1.rb.mass = 50.f;
+        car_wheel1.rb.inv_mass = 1.f / 30.f;
         car_wheel1.rb.restitution = 0.f;
         car_wheel1.rb.moment_of_inertia = 10000.f;
+        car_wheel1.rb.angular_damping = 0.95f;
 
         fz::Polygon car_wheel2({wheel_vertices.begin(), wheel_vertices.end()});
         car_wheel2.Translate({45, -20});
         car_wheel2.rb.friction = 1.f;
-        car_wheel2.rb.mass = 50.f;
+        car_wheel2.rb.inv_mass = 1.f / 30.f;
         car_wheel2.rb.restitution = 0.f;
         car_wheel2.rb.moment_of_inertia = 10000.f;
+        car_wheel2.rb.angular_damping = 0.95f;
 
         // obstacles
-        fz::Polygon obstacle({obstacle_vertices.begin(), obstacle_vertices.end()});
-        for (int i = 15; i < 20; i++)
-        {
-            for (int j = 1; j < 3; j++)
-            {
-                obstacle.Translate({(float)i * 5.f, (float)j * -5.f});
-                sim.AddPolygon(obstacle);
-            }
-        }
+        // fz::Polygon obstacle({obstacle_vertices.begin(), obstacle_vertices.end()});
+        // for (int i = 15; i < 20; i++)
+        // {
+        //     for (int j = 1; j < 3; j++)
+        //     {
+        //         obstacle.Translate({(float)i * 5.f, (float)j * -5.f});
+        //         sim.AddPolygon(obstacle);
+        //     }
+        // }
 
         index_car_body = sim.polygons.size();
         sim.AddPolygon(car_body);
@@ -168,11 +170,18 @@ void CarEnvironmentUpdate(float gas)
     Toad::Camera* cam = Toad::Camera::GetActiveCamera();
     cam->SetPosition(sim.polygons[index_car_body].rb.center);
 
-    if (sim.polygons[index_car_wheel1].rb.angular_velocity > 10.f)
-        return;
+    fz::Polygon& car_wheel1 = sim.polygons[index_car_wheel1];
+    fz::Polygon& car_wheel2 = sim.polygons[index_car_wheel2];
 
-    sim.polygons[index_car_wheel1].rb.angular_velocity += gas;
-    sim.polygons[index_car_wheel2].rb.angular_velocity += gas;
+    if (car_wheel1.rb.angular_velocity > 10.f)
+    {
+        car_wheel1.rb.angular_velocity = 10.f;
+        car_wheel2.rb.angular_velocity = std::min(car_wheel2.rb.angular_velocity, 10.f);
+        return;
+    }
+
+    car_wheel1.rb.angular_velocity += gas;
+    car_wheel2.rb.angular_velocity += gas;
 }
 
 }

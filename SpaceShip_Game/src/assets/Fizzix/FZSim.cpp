@@ -62,7 +62,7 @@ namespace fz
         }
 
         contact /= intersection_count;
-        
+
         return intersection_count;
     }
 
@@ -83,7 +83,7 @@ namespace fz
         }
     }
 
-    static bool SAT(const Polygon& a, const Polygon& b, Vec2f& normal, float& penetration, Vec2f& contact)
+    static bool SAT(const Polygon& a, const Polygon& b, Vec2f& normal, float& penetration, Vec2f& contact, size_t& contact_count)
     {
         float min_penetration = FLT_MAX;
         Vec2f best_normal;
@@ -133,7 +133,7 @@ namespace fz
         penetration = min_penetration;
     
         // get contact point 
-        size_t contact_count = ClipPolygon(a, b, contact);
+        contact_count = ClipPolygon(a, b, contact);
         
         if (contact_count == 0)
         {
@@ -151,12 +151,12 @@ namespace fz
             spr.Update(dt);
         }
     
-        Vec2f contact, normal;
+        Vec2f normal;
         float penetration;
 
-        for (int i = 0; i < polygons.size(); i++)
+        for (size_t i = 0; i < polygons.size(); i++)
         {
-            for (int j = i + 1; j < polygons.size(); j++)
+            for (size_t j = i + 1; j < polygons.size(); j++)
             {
                 Polygon& a = polygons[i];
                 Polygon& b = polygons[j];
@@ -165,15 +165,22 @@ namespace fz
                     continue;
                 if (a.rb.is_sleeping && b.rb.is_sleeping)
                     continue;
+                if (a.rb.is_sleeping && b.rb.is_static)
+                    continue;
 
-                bool collide = SAT(a, b, normal, penetration, contact);
+                size_t contact_count = 0;
+                Vec2f contact;
+                bool collide = SAT(a, b, normal, penetration, contact, contact_count);
                 
                 // DrawText("Collision: {}", collide);
                 // DrawText("Penetration: {}", penetration);
-                // DrawingCanvas::DrawArrow(contact, normal * 10.f, 0.5f);
 
                 if (collide) 
                 {
+                    // DrawingCanvas::DrawArrow(contact, normal * 10.f, 2.5f, {255, 0, 255, 255});
+                    // char str[8];
+                    // std::snprintf(str, 8, "%lu", contact_count);
+                    // DrawingCanvas::DrawText(contact, str, 15);
                     // for (int k = 0; k < 10; k++)
                     Resolve(a.rb, b.rb, contact, normal, penetration); 
                 }
@@ -182,7 +189,7 @@ namespace fz
 
         for (Polygon& p : polygons)
         {
-            if (p.rb.is_static)
+            if (p.rb.is_static || p.rb.is_sleeping)
             {
                 p.rb.velocity = Vec2f{0, 0};
                 p.rb.angular_velocity = 0.f;
@@ -202,11 +209,6 @@ namespace fz
 
     void Sim::Resolve(Rigidbody& a, Rigidbody& b, const Vec2f& contact, const Vec2f& normal, float penetration)
     {
-        float mass_sum = a.mass + b.mass;
-
-        if (abs(mass_sum) <= FLT_EPSILON)
-            return;
-
         Vec2f diff_a = contact - a.center;
         Vec2f diff_b = contact - b.center;
 
@@ -217,12 +219,12 @@ namespace fz
             return; 
 
         float e = (a.restitution + b.restitution) / 2.f;
-        float j = -(1.f + e) * vel_along_normal / (1.f / a.mass + 1.f / b.mass);
+        float j = -(1.f + e) * vel_along_normal / (a.inv_mass + b.inv_mass);
 
         Vec2f impulse = normal * j;
 
-        a.velocity -= impulse / a.mass;
-        b.velocity += impulse / b.mass;
+        a.velocity -= impulse * a.inv_mass;
+        b.velocity += impulse * b.inv_mass;
 
         float torque_a = cross(diff_a, impulse); 
         float torque_b = cross(diff_b, impulse);
@@ -231,7 +233,7 @@ namespace fz
         a.angular_velocity -= torque_a / a.moment_of_inertia;
         const float angular_velocity_factor = 10.f;
         Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-        float grip = std::max(penetration, 1.1f) * ((a.friction + b.friction) / 2.f);
+        float grip = std::max(penetration, 1.f) * ((a.friction + b.friction) / 2.f);
         a.velocity -= vel_rot_diff * grip;
 
         b.angular_velocity += torque_b / b.moment_of_inertia;

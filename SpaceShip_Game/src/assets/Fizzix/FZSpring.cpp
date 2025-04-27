@@ -37,8 +37,8 @@ namespace fz
             Toad::Color sitffness_as_col(0, 0, (uint8_t)((stiffy / std::max(stiffness, 1.f)) * 255.f), 255);
             Toad::DrawingCanvas::DrawArrow(end_pos_a, {0, 5.f}, 1.f, sitffness_as_col);
 
-            Toad::Vec2f start_rb_force = dir_norm * d * stiffy / start_rb->mass;
-            Toad::Vec2f end_rb_force = dir_norm * d * stiffy / end_rb->mass;
+            Toad::Vec2f start_rb_force = dir_norm * d * stiffy * start_rb->inv_mass;
+            Toad::Vec2f end_rb_force = dir_norm * d * stiffy * end_rb->inv_mass;
 
             start_rb->velocity += start_rb_force;
             end_rb->velocity -= end_rb_force;
@@ -64,8 +64,8 @@ namespace fz
             d = min_len;
         }
 
-        start_rb->velocity += dir_norm * d * stiffness / start_rb->mass;
-        end_rb->velocity -= dir_norm * d * stiffness / end_rb->mass;
+        start_rb->velocity += dir_norm * d * stiffness * start_rb->inv_mass;
+        end_rb->velocity -= dir_norm * d * stiffness * end_rb->inv_mass;
     }
 
     void Spring::UpdateRotation(float dt)

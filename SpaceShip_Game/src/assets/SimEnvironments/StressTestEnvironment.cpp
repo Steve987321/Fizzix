@@ -16,7 +16,7 @@ namespace SimEnvironments
         fz::Sim& sim = Sim::GetSim();
 
         time = 0;
-        square_vertices = fz::CreateSquare(5, 5);
+        square_vertices = fz::CreateSquare(25, 25);
 
         sim.polygons.clear();
         sim.springs.clear();
@@ -73,6 +73,7 @@ namespace SimEnvironments
             Toad::DrawingCanvas::ClearVertices();
             s.polygons.clear();
         }
+        
         ImGui::DragFloat("mass", &mass);
         ImGui::SliderFloat("friction", &friction, 0, 1);
         ImGui::DragFloat("shoot delay", &shoot_delay, 0.05f);
@@ -87,7 +88,7 @@ namespace SimEnvironments
                 float r = ImSin(ImGui::GetTime() * 1.5f);
                 p.rb.velocity.y = 50.f;
                 p.rb.velocity.x = r * 100.f;
-                p.rb.mass = mass;
+                p.rb.inv_mass = 1.f / mass;
                 p.rb.friction = friction;
                 s.AddPolygon(p);
 				Toad::DrawingCanvas::AddVertexArray(square_vertices.size());
