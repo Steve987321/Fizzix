@@ -64,6 +64,7 @@ void TVMMenu(VM& vm, bool& run_vm, char* source)
 	if (ImGui::Button("Compile & Run"))
 	{
 		bytecodes.clear();
+		run_vm = false;
 		if (Compiler::CompileString(source, bytecodes, &vm) != Compiler::CompileResult::ERR)
 		{
 			vm.instructions = bytecodes;

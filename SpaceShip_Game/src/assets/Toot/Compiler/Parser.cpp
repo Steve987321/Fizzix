@@ -15,6 +15,7 @@ static size_t pos = 0;
 static Token* token = nullptr;
 static std::vector<Token> current_tokens;
 static std::vector<std::string> errors;
+static int unique_label_counter = 0; // 
 
 static size_t register_pos = 0;
 static std::set<std::string> function_sigs;
@@ -66,11 +67,10 @@ static VMRegister* GetVarRegister(const std::string& id)
 
 static VMRegister CreateUniqueLabelRegister()
 {
-	static int counter = 0;
 	VMRegister reg;
 	reg.type = VMRegisterType::INT;
-	reg.value.num = counter;
-	counter++;
+	reg.value.num = unique_label_counter;
+	unique_label_counter++;
     return reg;
 }
 
@@ -950,6 +950,7 @@ void AddLibToParserCtx(const CPPLib& lib)
 bool Parse(const std::vector<Token>& tokens, std::vector<VM::Instruction>& op_codes_res, VM* vm)
 {
     register_pos = 0;
+	unique_label_counter = 0;
     
     vars.clear();
     function_sigs.clear();

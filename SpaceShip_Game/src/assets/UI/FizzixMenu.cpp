@@ -51,13 +51,16 @@ namespace UI
             }
             if (ImGui::Button("ANGULARA"))
             {
+                // Sim::env_car_gas = -10.f;
                 sim.polygons[0].rb.angular_velocity += 2.f;
-                sim.polygons[1].rb.angular_velocity += 2.f;
+                // sim.polygons[1].rb.angular_velocity += 2.f;
             }if (ImGui::Button("ANGULARB"))
             {
+                // Sim::env_car_gas = 10.f;
                 sim.polygons[0].rb.angular_velocity -= 2.f;
-                sim.polygons[1].rb.angular_velocity -= 2.f;
+                // sim.polygons[1].rb.angular_velocity -= 2.f;
             }
+
         }
 
         static float angle = 0;
@@ -108,9 +111,10 @@ namespace UI
                 ImGui::DragFloat("Moment of inertia", &rb.moment_of_inertia);
                 ImGui::SliderFloat("Restitution", &rb.restitution, 0.0f, 1.f);
                 
-                if (ImGui::DragFloat("Mass", &rb.mass))
-                    if (rb.mass < 0.1f) 
-                        rb.mass = 0.1f;
+                if (ImGui::DragFloat("InvMass", &rb.inv_mass, 0.01f))
+                    if (rb.inv_mass <= 0.0001f) 
+                        rb.inv_mass = 0.0001f;
+                        
                 ImGui::SliderFloat("Friction", &rb.friction, 0.0f, 1.f);
                 
                 ImGui::Text("Center(%.2f, %.2f) Sleeping(%d) Slide(%.2f)", rb.center.x, rb.center.y, rb.is_sleeping, rb.slide);
