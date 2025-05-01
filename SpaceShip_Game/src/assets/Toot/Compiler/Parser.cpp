@@ -15,7 +15,7 @@ static size_t pos = 0;
 static Token* token = nullptr;
 static std::vector<Token> current_tokens;
 static std::vector<std::string> errors;
-static int unique_label_counter = 0; // 
+static int unique_label_counter = 0;
 
 static size_t register_pos = 0;
 static std::set<std::string> function_sigs;

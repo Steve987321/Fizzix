@@ -18,11 +18,9 @@ namespace fz
             // get center diff 
             Toad::Vec2f center_diff = center - center_prev;
             float abs_vel = abs(center_diff.x + center_diff.y);
-            if (abs_vel <= 0.01f)
-            {
-                LOGDEBUGF("{}", abs_vel);
+            if (abs_vel <= 0.01f && angular_velocity <= 0.01f)
                 is_sleeping = true;
-            }
+                
             center_prev = center;
         }
     }

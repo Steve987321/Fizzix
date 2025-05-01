@@ -153,10 +153,11 @@ namespace fz
     
         Vec2f normal;
         float penetration;
+        size_t polygons_count = polygons.size(); 
 
-        for (size_t i = 0; i < polygons.size(); i++)
+        for (size_t i = 0; i < polygons_count; i++)
         {
-            for (size_t j = i + 1; j < polygons.size(); j++)
+            for (size_t j = i + 1; j < polygons_count; j++)
             {
                 Polygon& a = polygons[i];
                 Polygon& b = polygons[j];
@@ -216,7 +217,13 @@ namespace fz
         float vel_along_normal = dot(rel_vel, normal);
 
         if (vel_along_normal > 0) 
-            return; 
+        {
+            // skip impulse only apply correction
+            Vec2f correction = normal * (penetration * 0.5f);
+            a.center_correction = -correction;
+            b.center_correction = correction;
+            return;
+        }
 
         float e = (a.restitution + b.restitution) / 2.f;
         float j = -(1.f + e) * vel_along_normal / (a.inv_mass + b.inv_mass);
@@ -233,7 +240,7 @@ namespace fz
         a.angular_velocity -= torque_a / a.moment_of_inertia;
         const float angular_velocity_factor = 10.f;
         Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-        float grip = std::max(penetration, 1.f) * ((a.friction + b.friction) / 2.f);
+        float grip = std::max(penetration, 1.1f) * ((a.friction + b.friction) / 2.f);
         a.velocity -= vel_rot_diff * grip;
 
         b.angular_velocity += torque_b / b.moment_of_inertia;

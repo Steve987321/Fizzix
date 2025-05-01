@@ -65,9 +65,11 @@ namespace SimEnvironments
         static size_t polygon_add_counter = 0;
         ImGui::Text("%lu", polygon_add_counter);
 
-        static float mass = 1.f;
-        static float friction = 1.f;
+        static float mass = 25.f;
+        static float friction = 0.5f;
         static float shoot_delay = 0.1f;
+        static float moi = 10000.f;
+        static bool set_moi = false;
         if (ImGui::Button("Clear"))
         {
             Toad::DrawingCanvas::ClearVertices();
@@ -77,6 +79,8 @@ namespace SimEnvironments
         ImGui::DragFloat("mass", &mass);
         ImGui::SliderFloat("friction", &friction, 0, 1);
         ImGui::DragFloat("shoot delay", &shoot_delay, 0.05f);
+        ImGui::DragFloat("moi", &moi, 10.f);
+        ImGui::Checkbox("set moi", &set_moi);
 
         if (shoot)
         {
@@ -90,6 +94,8 @@ namespace SimEnvironments
                 p.rb.velocity.x = r * 100.f;
                 p.rb.inv_mass = 1.f / mass;
                 p.rb.friction = friction;
+                if (set_moi)
+                    p.rb.moment_of_inertia = moi;
                 s.AddPolygon(p);
 				Toad::DrawingCanvas::AddVertexArray(square_vertices.size());
                 time = 0;

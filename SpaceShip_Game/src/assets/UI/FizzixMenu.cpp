@@ -7,6 +7,7 @@
 
 namespace UI
 {
+    
     void FizzixMenu(fz::Sim& sim, char* source, bool& env_car_loaded, bool& env_stress_test_loaded, bool& pause_sim)
     { 
         using namespace Toad;
@@ -65,9 +66,11 @@ namespace UI
 
         static float angle = 0;
         static float scale = 1.f;
+        static float fdt = Time::GetFixedDeltaTime();
         ImGui::DragFloat("Angle", &angle);
         ImGui::Checkbox("Pause", &pause_sim);
         ImGui::DragFloat("Time scale", &scale, 0.05f);
+        ImGui::DragFloat("Fixed time step", &fdt, 0.01f);
 
         float grav_edit[2] = {sim.gravity.x, sim.gravity.y};
         if (ImGui::DragFloat2("Grav", grav_edit, 0.1f))
@@ -77,6 +80,8 @@ namespace UI
         }
         if (ImGui::Button("Set time scale"))
             Time::SetTimeScale(scale);
+        if (ImGui::Button("Set fixed DT"))
+            Time::SetFixedDeltaTime(fdt);
 
         for (int i = 0; i < sim.springs.size(); i++)
         {
