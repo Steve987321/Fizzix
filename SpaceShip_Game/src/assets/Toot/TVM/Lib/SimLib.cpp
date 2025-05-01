@@ -57,15 +57,6 @@ VMRegister SimLib::GetY(VM& vm, const std::vector<VMRegister>& args)
     return res; 
 }
 
-VMRegister SimLib::GetDY(VM& vm, const std::vector<VMRegister>& args)
-{
-    fz::Sim& sim = Sim::GetSim();
-    VMRegister res;
-    res.type = VMRegisterType::FLOAT;
-    res.value.flt = Sim::d_y;
-    return res; 
-}
-
 VMRegister SimLib::DrawCrossXY(VM &vm, const std::vector<VMRegister> &args)
 {
     const VMRegister* x_reg = GetRegVal(vm, args[1]);
@@ -144,7 +135,6 @@ CPPLib SimLib::GetSimLib()
     REGISTER_LIBFUNC(l, DoSome, "registerregister");
     REGISTER_LIBFUNC(l, DrawCrossXY, "registerregister");
     REGISTER_LIBFUNC(l, GetY, "");
-    REGISTER_LIBFUNC(l, GetDY, "");
     REGISTER_LIBFUNC(l, GetSome, "");
     REGISTER_LIBFUNC(l, GetDT, "");
     REGISTER_LIBFUNC(l, IsKeyDown, "register");

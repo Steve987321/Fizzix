@@ -20,10 +20,10 @@ namespace fz
     Polygon::Polygon(const std::vector<Toad::Vec2f>& points)
         : vertices(points)
     {
+        UpdateAABB();
         UpdateNormals();
         UpdateCentroid();
-        // requires the updated centroid
-        UpdateMomentOfInertia(rb.center);
+        UpdateMomentOfInertia(rb.center); // requires the updated centroid so this will be called last
     }
 
     void Polygon::UpdateNormals()
@@ -43,6 +43,8 @@ namespace fz
         for (Toad::Vec2f& v : vertices)
             v += offset;
         rb.center = rb.center + offset;
+
+        UpdateAABB();
     }
 
     void Polygon::Rotate(float angle)
@@ -72,6 +74,7 @@ namespace fz
         }
 
         UpdateNormals();
+        UpdateAABB();
     }
 
     // https://lexrent.eu/wp-content/uploads/torza/artikel_groep_sub_2_docs/BYZ_3_Polygon-Area-and-Centroid.pdf
@@ -117,6 +120,11 @@ namespace fz
         }
 
         rb.moment_of_inertia = inertia;
+    }
+
+    void Polygon::UpdateAABB()
+    {
+        aabb = OBBToAABBSlow(vertices);
     }
 
     bool Polygon::ContainsPoint(const Toad::Vec2f& point)

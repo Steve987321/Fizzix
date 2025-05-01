@@ -1,3 +1,4 @@
+// #define TOAD_EDITOR
 #ifdef TOAD_EDITOR 
 #include "framework/Framework.h"
 #include "Fizzix/FZSim.h"
@@ -8,16 +9,18 @@
 namespace UI
 {
     
-    void FizzixMenu(fz::Sim& sim, char* source, bool& env_car_loaded, bool& env_stress_test_loaded, bool& pause_sim)
+    void FizzixMenu(Sim& sim_script, char* source)
     { 
         using namespace Toad;
 
         ImGui::Begin("[Sim] fizzix menu");
 
+        fz::Sim& sim = sim_script.GetSim();
+
         if (ImGui::Button("Load CarScene"))
         {
-            env_car_loaded = true;
-            env_stress_test_loaded = false;
+            sim_script.env_car_loaded = true;
+            sim_script.env_stress_test_loaded = false;
             SimEnvironments::CarEnvironmentLoad();
             DrawingCanvas::ClearVertices();
 
@@ -29,8 +32,8 @@ namespace UI
         }
         if (ImGui::Button("Load StressTest"))
         {
-            env_car_loaded = false;
-            env_stress_test_loaded = true;
+            sim_script.env_car_loaded = false;
+            sim_script.env_stress_test_loaded = true;
             SimEnvironments::StressTestEnvironmentLoad(0);
 
             DrawingCanvas::ClearVertices();
@@ -68,10 +71,12 @@ namespace UI
         static float scale = 1.f;
         static float fdt = Time::GetFixedDeltaTime();
         ImGui::DragFloat("Angle", &angle);
-        ImGui::Checkbox("Pause", &pause_sim);
+        ImGui::Checkbox("Pause", &sim_script.pause_sim);
         ImGui::DragFloat("Time scale", &scale, 0.05f);
         ImGui::DragFloat("Fixed time step", &fdt, 0.01f);
-
+        ImGui::Checkbox("Show AABB", &sim_script.show_aabb);
+        ImGui::Checkbox("Show Velocities", &sim_script.show_velocities);
+        
         float grav_edit[2] = {sim.gravity.x, sim.gravity.y};
         if (ImGui::DragFloat2("Grav", grav_edit, 0.1f))
         {	
@@ -151,9 +156,19 @@ namespace UI
             draw->AddText({50.f, (float)i * 20.f}, IM_COL32(255, 255, 0, 255), v.c_str());
             i++;
         }
+        Camera* cam = Camera::GetActiveCamera(); 
+        if (cam)
+            for (const auto& [min, max] : rect_to_draw)
+            {
+                Vec2f min_screen = Screen::WorldToScreen(min, *cam);
+                Vec2f max_screen = Screen::WorldToScreen(max, *cam);
+                draw->AddRect({min_screen.x, min_screen.y}, {max_screen.x, max_screen.y}, IM_COL32_WHITE, 0, 0, 2.f);
+            }
 
         if (!txt_to_draw.empty())
             txt_to_draw.clear();
+        if (!rect_to_draw.empty())
+            rect_to_draw.clear();
             
     }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FZRigidbody.h"
+#include "FZTypes.h"
 
 namespace fz
 {
@@ -14,6 +15,7 @@ namespace fz
     public:
         std::vector<Toad::Vec2f> vertices;
         std::vector<Toad::Vec2f> normals;
+        AABB aabb;
 
         // springs attached to this polygon that need to be updated, hold spring index and whether its end(true) or start(false)
         std::vector<std::pair<size_t, bool>> attached_spring_points;
@@ -27,6 +29,7 @@ namespace fz
         void UpdateNormals();
         void UpdateCentroid();
         void UpdateMomentOfInertia(const Toad::Vec2f& center);
+        void UpdateAABB();
 
         void Translate(const Toad::Vec2f& offset);
         void Rotate(float angle);

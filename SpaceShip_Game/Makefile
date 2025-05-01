@@ -91,6 +91,7 @@ GENERATED += $(OBJDIR)/CPPBinding.o
 GENERATED += $(OBJDIR)/CarEnvironment.o
 GENERATED += $(OBJDIR)/Compiler.o
 GENERATED += $(OBJDIR)/FZFrame.o
+GENERATED += $(OBJDIR)/FZMath.o
 GENERATED += $(OBJDIR)/FZPolygon.o
 GENERATED += $(OBJDIR)/FZRigidbody.o
 GENERATED += $(OBJDIR)/FZSim.o
@@ -122,6 +123,7 @@ OBJECTS += $(OBJDIR)/CPPBinding.o
 OBJECTS += $(OBJDIR)/CarEnvironment.o
 OBJECTS += $(OBJDIR)/Compiler.o
 OBJECTS += $(OBJDIR)/FZFrame.o
+OBJECTS += $(OBJDIR)/FZMath.o
 OBJECTS += $(OBJDIR)/FZPolygon.o
 OBJECTS += $(OBJDIR)/FZRigidbody.o
 OBJECTS += $(OBJDIR)/FZSim.o
@@ -231,6 +233,9 @@ $(OBJDIR)/imgui-SFML.o: ../vendor/sfml-imgui/imgui-SFML.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/FZFrame.o: src/assets/Fizzix/FZFrame.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/FZMath.o: src/assets/Fizzix/FZMath.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/FZPolygon.o: src/assets/Fizzix/FZPolygon.cpp

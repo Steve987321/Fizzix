@@ -10,7 +10,6 @@ namespace fz
     {
     public:
         void Update(float dt);
-        void Resolve(Rigidbody& a, Rigidbody& b, const Toad::Vec2f& contact, const Toad::Vec2f& normal, float penetration);
 
         fz::Polygon& AddPolygon(fz::Polygon& polygon);
 

@@ -83,9 +83,9 @@ namespace fz
         }
     }
 
-    static bool SAT(const Polygon& a, const Polygon& b, Vec2f& normal, float& penetration, Vec2f& contact, size_t& contact_count)
+    static bool SAT(const Polygon& a, const Polygon& b, Vec2f& normal, float& overlap, Vec2f& contact, size_t& contact_count)
     {
-        float min_penetration = FLT_MAX;
+        float min_overlap = FLT_MAX;
         Vec2f best_normal;
         
         for (const Vec2f& axis : a.normals)
@@ -97,10 +97,10 @@ namespace fz
             if (max_a < min_b || max_b < min_a)
                 return false;
 
-            float pen = std::min(max_a - min_b, max_b - min_a);
-            if (pen < min_penetration)
+            float ab_overlap = std::min(max_a - min_b, max_b - min_a);
+            if (ab_overlap < min_overlap)
             {
-                min_penetration = pen;
+                min_overlap = ab_overlap;
                 best_normal = axis;
             }
         }
@@ -114,10 +114,10 @@ namespace fz
             if (max_a < min_b || max_b < min_a)
                 return false;
 
-            float pen = std::min(max_a - min_b, max_b - min_a);
-            if (pen < min_penetration)
+            float ab_overlap = std::min(max_a - min_b, max_b - min_a);
+            if (ab_overlap < min_overlap)
             {
-                min_penetration = pen;
+                min_overlap = ab_overlap;
                 best_normal = axis;
             }
         }
@@ -130,7 +130,7 @@ namespace fz
         }
     
         normal = best_normal;
-        penetration = min_penetration;
+        overlap = min_overlap;
     
         // get contact point 
         contact_count = ClipPolygon(a, b, contact);
@@ -144,71 +144,7 @@ namespace fz
         return true;
     }
 
-    void Sim::Update(float dt)
-    {
-        for (Spring& spr : springs)
-        {
-            spr.Update(dt);
-        }
-    
-        Vec2f normal;
-        float penetration;
-        size_t polygons_count = polygons.size(); 
-
-        for (size_t i = 0; i < polygons_count; i++)
-        {
-            for (size_t j = i + 1; j < polygons_count; j++)
-            {
-                Polygon& a = polygons[i];
-                Polygon& b = polygons[j];
-
-                if (a.rb.is_static && b.rb.is_static)
-                    continue;
-                if (a.rb.is_sleeping && b.rb.is_sleeping)
-                    continue;
-                if (a.rb.is_sleeping && b.rb.is_static)
-                    continue;
-
-                size_t contact_count = 0;
-                Vec2f contact;
-                bool collide = SAT(a, b, normal, penetration, contact, contact_count);
-                
-                // DrawText("Collision: {}", collide);
-                // DrawText("Penetration: {}", penetration);
-
-                if (collide) 
-                {
-                    // DrawingCanvas::DrawArrow(contact, normal * 10.f, 2.5f, {255, 0, 255, 255});
-                    // char str[8];
-                    // std::snprintf(str, 8, "%lu", contact_count);
-                    // DrawingCanvas::DrawText(contact, str, 15);
-                    // for (int k = 0; k < 10; k++)
-                    Resolve(a.rb, b.rb, contact, normal, penetration); 
-                }
-            }
-        }
-
-        for (Polygon& p : polygons)
-        {
-            if (p.rb.is_static || p.rb.is_sleeping)
-            {
-                p.rb.velocity = Vec2f{0, 0};
-                p.rb.angular_velocity = 0.f;
-                continue;
-            }
-
-            p.rb.velocity += gravity * dt;
-            
-            Vec2f center_prev = p.rb.center; 
-            p.rb.Update(dt);
-            Vec2f movement = p.rb.center - center_prev;
-            p.UpdateCentroid();
-            p.Translate(movement);
-            p.Rotate(p.rb.angular_velocity * dt);
-        }
-    }
-
-    void Sim::Resolve(Rigidbody& a, Rigidbody& b, const Vec2f& contact, const Vec2f& normal, float penetration)
+    static void Resolve(Rigidbody& a, Rigidbody& b, const Vec2f& contact, const Vec2f& normal, float overlap)
     {
         Vec2f diff_a = contact - a.center;
         Vec2f diff_b = contact - b.center;
@@ -219,7 +155,7 @@ namespace fz
         if (vel_along_normal > 0) 
         {
             // skip impulse only apply correction
-            Vec2f correction = normal * (penetration * 0.5f);
+            Vec2f correction = normal * (overlap * 0.5f);
             a.center_correction = -correction;
             b.center_correction = correction;
             return;
@@ -240,14 +176,15 @@ namespace fz
         a.angular_velocity -= torque_a / a.moment_of_inertia;
         const float angular_velocity_factor = 10.f;
         Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-        float grip = std::max(penetration, 1.1f) * ((a.friction + b.friction) / 2.f);
+        float grip = std::max(overlap, 1.1f) * ((a.friction + b.friction) / 2.f);
         a.velocity -= vel_rot_diff * grip;
 
         b.angular_velocity += torque_b / b.moment_of_inertia;
         vel_rot_diff = b.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
         b.velocity -= vel_rot_diff * grip;
+        // b.angular_velocity -= vel_rot_diff.Length() * grip;
 
-        Vec2f correction = normal * (penetration * 0.5f);
+        Vec2f correction = normal * (overlap * 0.5f);
         // DrawText("CORRECTING: {} {}", correction.x, correction.y);
         
         // apply corection and also check for resting
@@ -265,6 +202,109 @@ namespace fz
 
         a.center_correction = -correction;
         b.center_correction = correction;
+    }
+
+    static void BruteForce(std::vector<Polygon>& polygons)
+    {
+        Vec2f normal;
+        float overlap;
+        size_t polygons_count = polygons.size(); 
+
+        for (size_t i = 0; i < polygons_count; i++)
+        {
+            Polygon& a = polygons[i];
+
+            for (size_t j = i + 1; j < polygons_count; j++)
+            {
+                Polygon& b = polygons[j];
+
+                if (a.rb.is_static && b.rb.is_static)
+                    continue;
+                if (a.rb.is_sleeping && b.rb.is_sleeping)
+                    continue;
+                if (a.rb.is_sleeping && b.rb.is_static)
+                    continue;
+                
+                size_t contact_count = 0;
+                Vec2f contact;
+                bool collide = SAT(a, b, normal, overlap, contact, contact_count);
+                
+                // DrawText("Collision: {}", collide);
+                // DrawText("Overlap: {}", overlap);
+
+                if (collide) 
+                    Resolve(a.rb, b.rb, contact, normal, overlap); 
+            }
+        }
+    }
+
+    //
+    // SWEEP AND PRUNE USING X AXIS 
+    // 
+
+    static bool SortByLeftAxis(const Polygon& a, const Polygon& b)
+    {
+        return a.aabb.min.x < b.aabb.min.x;
+    }
+
+    static void SweepAndPrune(std::vector<Polygon>& polygons)
+    {
+        // sort by left axis 
+        std::ranges::sort(polygons, SortByLeftAxis);
+
+        Vec2f normal; 
+        float overlap; 
+        size_t polygons_count = polygons.size();
+
+        for (size_t i = 0; i < polygons_count; i++)
+        {
+            Polygon& a = polygons[i];
+
+            for (size_t j = i + 1; j < polygons_count; j++)
+            {
+                Polygon& b = polygons[j];
+                
+                if (b.aabb.min.x > a.aabb.max.x)
+                    break;
+
+                // perform sat 
+                size_t contact_count = 0;
+                Vec2f contact;
+                bool collide = SAT(a, b, normal, overlap, contact, contact_count);
+                
+                if (collide) 
+                    Resolve(a.rb, b.rb, contact, normal, overlap); 
+            }
+        }
+    }
+
+    void Sim::Update(float dt)
+    {
+        for (Spring& spr : springs)
+        {
+            spr.Update(dt);
+        }
+
+        SweepAndPrune(polygons);
+
+        for (Polygon& p : polygons)
+        {
+            if (p.rb.is_static || p.rb.is_sleeping)
+            {
+                p.rb.velocity = Vec2f{0, 0};
+                p.rb.angular_velocity = 0.f;
+                continue;
+            }
+
+            p.rb.velocity += gravity * dt;
+            
+            Vec2f center_prev = p.rb.center; 
+            p.rb.Update(dt);
+            Vec2f movement = p.rb.center - center_prev;
+            p.UpdateCentroid();
+            p.Translate(movement);
+            p.Rotate(p.rb.angular_velocity * dt);
+        }
     }
 
     fz::Polygon& Sim::AddPolygon(fz::Polygon &polygon)
