@@ -11,6 +11,7 @@
 
 #include "engine/Engine.h"
 #include "engine/PlaySession.h"
+#include "engine/systems/Timer.h"
 
 #include "UI/FizzixMenu.h"
 #include "UI/TVMMenu.h"
@@ -32,19 +33,23 @@ static bool rmouse_pressed = false;
 static bool add_potential_spring = false;
 static bool add_potential_square = false;
 
+static float sim_time = 0.f;
+static float vm_time = 0.f;
+static float fixed_time = 0.f;
+
 static void OnMousePress(sf::Mouse::Button mouse)
 {
-	if (mouse == sf::Mouse::Left)
+	if (mouse == sf::Mouse::Button::Left)
 		lmouse_pressed = true; 
-	else if (mouse == sf::Mouse::Right)
+	else if (mouse == sf::Mouse::Button::Right)
 		rmouse_pressed = true; 
 }
 
 static void OnMouseRelease(sf::Mouse::Button mouse)
 {
-	if (mouse == sf::Mouse::Left)
+	if (mouse == sf::Mouse::Button::Left)
 		lmouse_released = true;
-	else if (mouse == sf::Mouse::Right)
+	else if (mouse == sf::Mouse::Button::Right)
 		rmouse_released = true; 
 }
 
@@ -82,13 +87,13 @@ void Sim::OnStart(Object* obj)
 {
 	Script::OnStart(obj);
 
-	Time::SetFixedDeltaTime(0.01f);
+	Time::SetFixedDeltaTime(0.015f);
 
 #if defined(TOAD_EDITOR) || !defined(NDEBUG)
 	txt_to_draw.clear();
 #endif 
 
-	Mouse::capture_mouse = true;
+	Mouse::ShouldCaptureMouse(true);
 	Mouse::SetVisible(true);
 
 	sim = fz::Sim();
@@ -127,7 +132,8 @@ void Sim::OnUpdate(Object* obj)
 	// spring previous spring polygon index
 	static int i_prev = 0;
 	static Vec2f rel_prev {};
-
+	
+	Timer timer(true);
 	for (int i = 0; i < sim.polygons.size(); i++)
 	{
 		fz::Polygon& curr_polygon = sim.polygons[i];
@@ -198,6 +204,12 @@ void Sim::OnUpdate(Object* obj)
 		}
 	}
 
+	float drawing_canvas_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
+	DrawText("DrawingCanvas (No Springs): {}ms", drawing_canvas_time);
+	DrawText("Toot: {}ms", vm_time);
+	DrawText("Sim: {}ms", sim_time);
+	DrawText("FixedUpdate: {}ms", fixed_time);
+
 	// int i = 0;
 	for (const fz::Spring& spr : sim.springs)
 	{
@@ -222,19 +234,29 @@ void Sim::OnUpdate(Object* obj)
 
 void Sim::OnFixedUpdate(Object* obj)
 {
+	Timer total_timer(true);
+
 	if (!pause_sim)
+	{
+		Timer timer(true);
 		sim.Update(Time::GetFixedDeltaTime());
+		sim_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
+	}
 
 	if (run_vm)
 	{
+		Timer timer(true);
 		vm.Run(); 
 		vm.instruction_pointer = 0;
+		vm_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
 	}
+	
+	fixed_time = total_timer.Elapsed<std::chrono::microseconds>() / 1000.f;
 }
 
 void Sim::OnRender(Object* obj, sf::RenderTarget& target) 
 {
-	DrawingCanvas::DrawVertices(target, sf::TrianglesStrip);
+	DrawingCanvas::DrawVertices(target, sf::PrimitiveType::TriangleStrip);
 }
 
 void Sim::ExposeVars()

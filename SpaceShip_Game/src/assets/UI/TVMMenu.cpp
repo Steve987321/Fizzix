@@ -1,4 +1,4 @@
-#ifdef TOAD_EDITOR
+#if defined(TOAD_EDITOR) || !defined(NDEBUG)
 #include "framework/Framework.h"
 
 #include "engine/Engine.h"

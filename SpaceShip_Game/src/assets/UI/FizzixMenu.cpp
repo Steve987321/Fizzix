@@ -1,5 +1,5 @@
 // #define TOAD_EDITOR
-#ifdef TOAD_EDITOR 
+#if defined(TOAD_EDITOR) || !defined(NDEBUG)
 #include "framework/Framework.h"
 #include "Fizzix/FZSim.h"
 #include "SimEnvironments/CarEnvironment.h"
@@ -156,14 +156,6 @@ namespace UI
             draw->AddText({50.f, (float)i * 20.f}, IM_COL32(255, 255, 0, 255), v.c_str());
             i++;
         }
-        Camera* cam = Camera::GetActiveCamera(); 
-        if (cam)
-            for (const auto& [min, max] : rect_to_draw)
-            {
-                Vec2f min_screen = Screen::WorldToScreen(min, *cam);
-                Vec2f max_screen = Screen::WorldToScreen(max, *cam);
-                draw->AddRect({min_screen.x, min_screen.y}, {max_screen.x, max_screen.y}, IM_COL32_WHITE, 0, 0, 2.f);
-            }
 
         if (!txt_to_draw.empty())
             txt_to_draw.clear();

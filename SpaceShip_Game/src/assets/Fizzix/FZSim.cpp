@@ -182,7 +182,6 @@ namespace fz
         b.angular_velocity += torque_b / b.moment_of_inertia;
         vel_rot_diff = b.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
         b.velocity -= vel_rot_diff * grip;
-        // b.angular_velocity -= vel_rot_diff.Length() * grip;
 
         Vec2f correction = normal * (overlap * 0.5f);
         // DrawText("CORRECTING: {} {}", correction.x, correction.y);
@@ -263,6 +262,13 @@ namespace fz
             for (size_t j = i + 1; j < polygons_count; j++)
             {
                 Polygon& b = polygons[j];
+
+                if (a.rb.is_static && b.rb.is_static)
+                    continue;
+                if (a.rb.is_sleeping && b.rb.is_sleeping)
+                    continue;
+                if (a.rb.is_sleeping && b.rb.is_static)
+                    continue;
                 
                 if (b.aabb.min.x > a.aabb.max.x)
                     break;
