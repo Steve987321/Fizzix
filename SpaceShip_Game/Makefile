@@ -28,13 +28,13 @@ ifeq ($(origin AR), default)
   AR = ar
 endif
 RESCOMP = windres
-INCLUDES += -I../../../Steve987321/Engine2D/Engine/src -I../vendor -I../vendor/imgui -I../vendor/SFML-2.6.0/include -I../vendor/json/include -Isrc -Isrc/assets -Isrc/assets/Toot
+INCLUDES += -I../../../Steve987321/Engine2D/Engine/src -I../vendor -I../vendor/imgui -I../vendor/SFML-3.0.0/include -I../vendor/json/include -Isrc -Isrc/assets -Isrc/assets/Toot
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
 LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -lEngine -lsfml-system -lsfml-window -lsfml-graphics -lsfml-audio
 LDDEPS +=
-ALL_LDFLAGS += $(LDFLAGS) -L../../../Steve987321/Engine2D/bin/Release-macosx-x86_64 -L../vendor/SFML-2.6.0/lib -m64 -dynamiclib -Wl,-install_name,@rpath/libSpaceShip_Game.dylib
+ALL_LDFLAGS += $(LDFLAGS) -L../../../Steve987321/Engine2D/bin/Release-macosx-x86_64 -L../vendor/SFML-3.0.0/lib -m64 -dynamiclib -Wl,-install_name,@rpath/libSpaceShip_Game.dylib
 LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
 define PREBUILDCMDS
 endef
@@ -64,8 +64,8 @@ TARGETDIR = ../bin/Dev-macosx-x86_64
 TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
 OBJDIR = ../bin-intermediate/Dev-macosx-x86_64
 DEFINES += -DNDEBUG -D_USRDLL -DGAME_IS_EXPORT -DTOAD_EDITOR
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -std=c++20
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++20
 
 else ifeq ($(config),devdebug)
 TARGETDIR = ../bin/DevDebug-macosx-x86_64
