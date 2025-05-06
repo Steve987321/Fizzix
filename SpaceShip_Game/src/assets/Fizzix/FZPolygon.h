@@ -17,6 +17,7 @@ namespace fz
         std::vector<Toad::Vec2f> normals;
         AABB aabb;
 
+        // #TODO: sweep and prune breaks this 
         // springs attached to this polygon that need to be updated, hold spring index and whether its end(true) or start(false)
         std::vector<std::pair<size_t, bool>> attached_spring_points;
 
