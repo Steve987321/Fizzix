@@ -16,7 +16,7 @@ namespace SimEnvironments
         fz::Sim& sim = Sim::GetSim();
 
         time = 0;
-        square_vertices = fz::CreateSquare(25, 25);
+        square_vertices = fz::CreateSquare(10, 10);
 
         sim.polygons.clear();
         sim.springs.clear();
@@ -62,14 +62,21 @@ namespace SimEnvironments
         float g = std::min(1.f, fps / fps_threshold);
         ImGui::TextColored({1.f - g, g, 0, 1}, "FPS %.1f", fps);
         // ImGui::TextColored({0, std::max(1.f, min_fps / fps_threshold), 0, 1}, "FPS min %.1f", min_fps);
-        static size_t polygon_add_counter = 0;
-        ImGui::Text("%lu", polygon_add_counter);
+        static int polygon_add_counter = 0;
+        static int shoot_limit = 0;
+        ImGui::Text("%d", polygon_add_counter);
 
         static float mass = 25.f;
         static float friction = 0.5f;
         static float shoot_delay = 0.1f;
         static float moi = 10000.f;
         static bool set_moi = false;
+        static int grid_pos_offx = -400;
+        static int grid_pos_offy = -800;
+        static int grid_size_x = 10;
+        static int grid_size_y = 10;
+        static int grid_space_x = 10;
+        static int grid_space_y = 10;
         if (ImGui::Button("Clear"))
         {
             Toad::DrawingCanvas::ClearVertices();
@@ -81,17 +88,34 @@ namespace SimEnvironments
         ImGui::DragFloat("shoot delay", &shoot_delay, 0.05f);
         ImGui::DragFloat("moi", &moi, 10.f);
         ImGui::Checkbox("set moi", &set_moi);
+        ImGui::DragInt("shoot limit", &shoot_limit);
+        ImGui::DragInt("grid posoffx", &grid_pos_offx);
+        ImGui::DragInt("grid posoffy", &grid_pos_offy);
+        ImGui::SliderInt("grid x", &grid_size_x, 5, 50);
+        ImGui::SliderInt("grid y", &grid_size_y, 5, 50);
+        ImGui::SliderInt("grid space x", &grid_space_x, 1, 10);
+        ImGui::SliderInt("grid space y", &grid_space_y, 1, 10);
 
         if (shoot)
         {
+            static int x = 0; 
+            static int y = 0;
+            
             time += dt;
             if (time > shoot_delay)
             {
                 fz::Polygon p({square_vertices.begin(), square_vertices.end()});
-                p.Translate({0, -100});
-                float r = ImSin(ImGui::GetTime() * 1.5f);
-                p.rb.velocity.y = 50.f;
-                p.rb.velocity.x = r * 100.f;
+                p.Translate({(float)x * 10 + grid_space_x + grid_pos_offx, (float)y * 10 + grid_space_y + grid_pos_offy});
+                x++;
+                if (x == grid_size_x)
+                {
+                    x = 0;
+                    y++;
+                }
+                    
+                // float r = ImSin(ImGui::GetTime() * 1.5f);
+                // p.rb.velocity.y = 50.f;
+                // p.rb.velocity.x = r * 100.f;
                 p.rb.inv_mass = 1.f / mass;
                 p.rb.friction = friction;
                 if (set_moi)
@@ -102,11 +126,13 @@ namespace SimEnvironments
                 polygon_add_counter++;
             }
 
-            if (polygon_add_counter > 50)
+            if (polygon_add_counter > shoot_limit)
             {
                 shoot = false;
                 time = 0;
                 polygon_add_counter = 0;
+                x = 0;
+                y = 0;
             }
             // if (fps < fps_threshold)
             //     shoot = false;

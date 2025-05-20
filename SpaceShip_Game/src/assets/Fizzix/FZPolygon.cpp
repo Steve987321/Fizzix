@@ -9,7 +9,8 @@ namespace fz
 {
     std::array<Toad::Vec2f, 6> CreateSquare(float size_x, float size_y)
     {
-        return std::array<Toad::Vec2f, 6>({{0, size_y}, {size_x, size_y}, {size_x, 0}, {0, size_y}, {size_x, 0},  {0, 0}});
+        return CreateSquare({0, 0}, {size_x, size_y});
+        // return std::array<Toad::Vec2f, 6>({{0, size_y}, {size_x, size_y}, {size_x, 0}, {0, size_y}, {size_x, 0},  {0, 0}});
     }
 
     std::array<Toad::Vec2f, 6> CreateSquare(const Toad::Vec2f& start, const Toad::Vec2f& end)

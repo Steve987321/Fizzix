@@ -28,7 +28,7 @@ ifeq ($(origin AR), default)
   AR = ar
 endif
 RESCOMP = windres
-INCLUDES += -I../../../Steve987321/Engine2D/Engine/src -I../vendor -I../vendor/imgui -I../vendor/SFML-3.0.0/include -I../vendor/json/include -Isrc -Isrc/assets -Isrc/assets/Toot
+INCLUDES += -I../../../Steve987321/Engine2D/Engine/src -I../vendor -I../vendor/imgui -I../vendor/SFML-3.0.0/include -I../vendor/json/include -Isrc -Isrc/assets
 FORCE_INCLUDE +=
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
@@ -64,8 +64,8 @@ TARGETDIR = ../bin/Dev-macosx-x86_64
 TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
 OBJDIR = ../bin-intermediate/Dev-macosx-x86_64
 DEFINES += -DNDEBUG -D_USRDLL -DGAME_IS_EXPORT -DTOAD_EDITOR
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++20
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -std=c++20
 
 else ifeq ($(config),devdebug)
 TARGETDIR = ../bin/DevDebug-macosx-x86_64

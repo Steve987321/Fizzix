@@ -11,4 +11,14 @@ namespace fz
         Toad::Vec2f min;
         Toad::Vec2f max;
     };
+
+    struct Node
+    {   
+        AABB data;
+        size_t children[4];
+    };
+    struct Tree
+    {
+
+    };
 }

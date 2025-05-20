@@ -3,7 +3,7 @@
 #include "Lexer.h"
 #include <vector>
 #include <set>
-#include "TVM/TVM.h"
+#include "Toot/TVM/TVM.h"
 
 inline std::unordered_map<OP_CODE, std::string> op_code_names
 {

@@ -204,11 +204,11 @@ void Sim::OnUpdate(Object* obj)
 		}
 	}
 
-	float drawing_canvas_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
-	DrawText("DrawingCanvas (No Springs): {}ms", drawing_canvas_time);
-	DrawText("Toot: {}ms", vm_time);
-	DrawText("Sim: {}ms", sim_time);
-	DrawText("FixedUpdate: {}ms", fixed_time);
+	// float drawing_canvas_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
+	// DrawText("DrawingCanvas (No Springs): {}ms", drawing_canvas_time);
+	// DrawText("Toot: {}ms", vm_time);
+	// DrawText("Sim: {}ms", sim_time);
+	// DrawText("FixedUpdate: {}ms", fixed_time);
 
 	// int i = 0;
 	for (const fz::Spring& spr : sim.springs)

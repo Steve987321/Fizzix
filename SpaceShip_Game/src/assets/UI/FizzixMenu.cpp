@@ -56,12 +56,12 @@ namespace UI
             if (ImGui::Button("ANGULARA"))
             {
                 // Sim::env_car_gas = -10.f;
-                sim.polygons[0].rb.angular_velocity += 2.f;
+                sim.polygons[1].rb.angular_velocity += 2.f;
                 // sim.polygons[1].rb.angular_velocity += 2.f;
             }if (ImGui::Button("ANGULARB"))
             {
                 // Sim::env_car_gas = 10.f;
-                sim.polygons[0].rb.angular_velocity -= 2.f;
+                sim.polygons[1].rb.angular_velocity -= 2.f;
                 // sim.polygons[1].rb.angular_velocity -= 2.f;
             }
 

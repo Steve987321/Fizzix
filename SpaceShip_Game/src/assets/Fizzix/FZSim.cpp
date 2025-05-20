@@ -172,28 +172,31 @@ namespace fz
         float torque_a = cross(diff_a, impulse); 
         float torque_b = cross(diff_b, impulse);
 
-        Vec2f perp = {-normal.y, normal.x};
+        // Vec2f perp = {-normal.y, normal.x};
         a.angular_velocity -= torque_a / a.moment_of_inertia;
-        const float angular_velocity_factor = 10.f;
-        Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-        float grip = std::max(overlap, 1.1f) * ((a.friction + b.friction) / 2.f);
-        a.velocity -= vel_rot_diff * grip;
-
         b.angular_velocity += torque_b / b.moment_of_inertia;
-        vel_rot_diff = b.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
-        b.velocity -= vel_rot_diff * grip;
+        // float grip = (a.friction + b.friction) / 2.f;
 
-        Vec2f correction = normal * (overlap * 0.5f);
+        // Vec2f vel_rot_diff = a.velocity - diff_a.perpendicular() * (perp * (a.angular_velocity));
+        // a.velocity += vel_rot_diff * grip;
+        // a.angular_velocity *= 0.985f;
+
+        // vel_rot_diff = b.velocity + diff_b.perpendicular() * (perp * (b.angular_velocity));
+        // b.velocity -= vel_rot_diff * grip;
+        // b.angular_velocity *= 0.985f;
+
+        Vec2f correction = normal * (overlap);
         // DrawText("CORRECTING: {} {}", correction.x, correction.y);
         
         // apply corection and also check for resting
-        // #todo change resting check 
+
+        // wake up sleepers
         if (a.is_sleeping)
         {
             a.sleeping_ticks = 0;
             a.is_sleeping = false;
         }
-        if (!b.is_sleeping)
+        if (b.is_sleeping)
         {
             b.sleeping_ticks = 0;
             b.is_sleeping = false;       
@@ -240,6 +243,7 @@ namespace fz
     //
     // SWEEP AND PRUNE USING X AXIS 
     // 
+    // #TODO: Springs won't work, they store index 
 
     static bool SortByLeftAxis(const Polygon& a, const Polygon& b)
     {
@@ -291,6 +295,7 @@ namespace fz
             spr.Update(dt);
         }
 
+        // BruteForce(polygons);
         SweepAndPrune(polygons);
 
         for (Polygon& p : polygons)

@@ -10,6 +10,7 @@ namespace fz
     
     class Sim;
     class Spring;
+    
     class Polygon
     {
     public:

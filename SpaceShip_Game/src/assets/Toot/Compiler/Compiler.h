@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "TVM/TVM.h"
+#include "Toot/TVM/TVM.h"
 
 namespace Compiler
 {
