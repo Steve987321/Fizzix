@@ -3,7 +3,7 @@
 
 #include "framework/Framework.h"
 #include "scripts/Sim.h"
-#include "Fizzix/FZSim.h"
+#include "Fizzix/FZWorld.h"
 
 static const VMRegister* GetRegVal(VM& vm, const VMRegister& reg)
 {
@@ -24,8 +24,8 @@ static const VMRegister* GetRegVal(VM& vm, const VMRegister& reg)
 
 VMRegister SimLib::DoSome(VM &vm, const std::vector<VMRegister> &args)
 {
-    fz::Sim& sim = Sim::GetSim();
-    if (sim.polygons.empty())
+    fz::World& world = Sim::GetWorld();
+    if (world.polygons.empty())
         return {};
     
     Toad::Vec2f add;
@@ -35,7 +35,7 @@ VMRegister SimLib::DoSome(VM &vm, const std::vector<VMRegister> &args)
     add.x = x_reg->value.flt;
     add.y = y_reg->value.flt;
 
-    sim.polygons[0].rb.velocity += add;
+    world.polygons[0].rb.velocity += add;
 
     return {};
 }
@@ -50,10 +50,10 @@ VMRegister SimLib::GetSome(VM& vm, const std::vector<VMRegister>& args)
 
 VMRegister SimLib::GetY(VM& vm, const std::vector<VMRegister>& args)
 {
-    fz::Sim& sim = Sim::GetSim();
+    fz::World& world = Sim::GetWorld();
     VMRegister res;
     res.type = VMRegisterType::FLOAT;
-    res.value.flt = sim.polygons[0].rb.center.y;
+    res.value.flt = world.polygons[0].rb.center.y;
     return res; 
 }
 
@@ -96,8 +96,8 @@ static std::vector<float> spring_dist_state;
 
 VMRegister SimLib::CESaveSpringStates(VM &vm, const std::vector<VMRegister> &args)
 {
-    fz::Sim& sim = Sim::GetSim(); 
-    for (fz::Spring& spr : sim.springs)
+    fz::World& world = Sim::GetWorld(); 
+    for (fz::Spring& spr : world.springs)
     {
         spring_dist_state.emplace_back(spr.target_len);
     }
@@ -107,10 +107,10 @@ VMRegister SimLib::CESaveSpringStates(VM &vm, const std::vector<VMRegister> &arg
 VMRegister SimLib::CESetSpringDistanceFactor(VM &vm, const std::vector<VMRegister> &args)
 {
     const VMRegister* stiffness_arg = GetRegVal(vm, args[1]);
-    fz::Sim& sim = Sim::GetSim();  
+    fz::World& world = Sim::GetWorld();  
     size_t i = 0;
 
-    for (fz::Spring& spr : sim.springs)
+    for (fz::Spring& spr : world.springs)
     {
         if (i < spring_dist_state.size())
             spr.target_len = spring_dist_state[i] * stiffness_arg->value.flt;

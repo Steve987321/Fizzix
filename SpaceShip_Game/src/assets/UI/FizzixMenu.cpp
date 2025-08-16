@@ -1,9 +1,9 @@
-// #define TOAD_EDITOR
 #if defined(TOAD_EDITOR) || !defined(NDEBUG)
 #include "framework/Framework.h"
-#include "Fizzix/FZSim.h"
+#include "Fizzix/FZWorld.h"
 #include "SimEnvironments/CarEnvironment.h"
 #include "SimEnvironments/StressTestEnvironment.h"
+#include "SimEnvironments/SandBoxEnvironment.h"
 #include "scripts/Sim.h"
 
 namespace UI
@@ -15,54 +15,50 @@ namespace UI
 
         ImGui::Begin("[Sim] fizzix menu");
 
-        fz::Sim& sim = sim_script.GetSim();
+        fz::World& world = sim_script.GetWorld();
 
         if (ImGui::Button("Load CarScene"))
         {
             sim_script.env_car_loaded = true;
             sim_script.env_stress_test_loaded = false;
             SimEnvironments::CarEnvironmentLoad();
-            DrawingCanvas::ClearVertices();
 
             // copy default script to source 
             strncpy(source, SimEnvironments::car_controller_script, strlen(SimEnvironments::car_controller_script) + 1);
-
-            for (fz::Polygon& p : sim.polygons)
-                DrawingCanvas::AddVertexArray(p.vertices.size());
         }
         if (ImGui::Button("Load StressTest"))
         {
             sim_script.env_car_loaded = false;
             sim_script.env_stress_test_loaded = true;
             SimEnvironments::StressTestEnvironmentLoad(0);
+        }
 
-            DrawingCanvas::ClearVertices();
-            for (fz::Polygon& p : sim.polygons)
-                DrawingCanvas::AddVertexArray(p.vertices.size());
+        if (ImGui::Button("Load Sandbox"))
+        {
+            sim_script.env_car_loaded = false;
+            SimEnvironments::SandBoxEnvironmetLoad();
         }
 
         if (ImGui::Button("Clear"))
         {
-            sim.polygons.clear();
-            sim.springs.clear();
-            DrawingCanvas::ClearVertices();
+            world = fz::World();
         }
-        if (!sim.polygons.empty())
+        if (!world.polygons.empty())
         {
             if (ImGui::Button("FORCE"))
             {
-                sim.polygons[0].rb.velocity += Vec2f{0, -10.f};
+                world.polygons[0].rb.velocity += Vec2f{0, -10.f};
             }
             if (ImGui::Button("ANGULARA"))
             {
                 // Sim::env_car_gas = -10.f;
-                sim.polygons[1].rb.angular_velocity += 2.f;
-                // sim.polygons[1].rb.angular_velocity += 2.f;
+                world.polygons[1].rb.angular_velocity += 2.f;
+                // world.polygons[1].rb.angular_velocity += 2.f;
             }if (ImGui::Button("ANGULARB"))
             {
                 // Sim::env_car_gas = 10.f;
-                sim.polygons[1].rb.angular_velocity -= 2.f;
-                // sim.polygons[1].rb.angular_velocity -= 2.f;
+                world.polygons[1].rb.angular_velocity -= 2.f;
+                // world.polygons[1].rb.angular_velocity -= 2.f;
             }
 
         }
@@ -72,29 +68,30 @@ namespace UI
         static float fdt = Time::GetFixedDeltaTime();
         ImGui::DragFloat("Angle", &angle);
         ImGui::Checkbox("Pause", &sim_script.pause_sim);
+        ImGui::DragFloat("SimGravity Y", &world.gravity.y);
         ImGui::DragFloat("Time scale", &scale, 0.05f);
         ImGui::DragFloat("Fixed time step", &fdt, 0.01f);
         ImGui::Checkbox("Show AABB", &sim_script.show_aabb);
         ImGui::Checkbox("Show Velocities", &sim_script.show_velocities);
         
-        float grav_edit[2] = {sim.gravity.x, sim.gravity.y};
+        float grav_edit[2] = {world.gravity.x, world.gravity.y};
         if (ImGui::DragFloat2("Grav", grav_edit, 0.1f))
         {	
-            sim.gravity.x = grav_edit[0];
-            sim.gravity.y = grav_edit[1];
+            world.gravity.x = grav_edit[0];
+            world.gravity.y = grav_edit[1];
         }
         if (ImGui::Button("Set time scale"))
             Time::SetTimeScale(scale);
         if (ImGui::Button("Set fixed DT"))
             Time::SetFixedDeltaTime(fdt);
 
-        for (int i = 0; i < sim.springs.size(); i++)
+        for (int i = 0; i < world.springs.size(); i++)
         {
             ImGui::PushID(i);
 
             if (ImGui::TreeNode("Spring", "Spring %d", i))
             {
-                fz::Spring& spr = sim.springs[i];
+                fz::Spring& spr = world.springs[i];
 
                 ImGui::Text("attached A: (%.2f %.2f) B: (%.2f %.2f)", spr.start_rb->center.x,  spr.start_rb->center.y, spr.end_rb->center.x, spr.end_rb->center.y);
                 
@@ -110,13 +107,13 @@ namespace UI
 
             ImGui::PopID();
         }
-        for (int i = 0; i < sim.polygons.size(); i++)
+        for (int i = 0; i < world.polygons.size(); i++)
         {
             ImGui::PushID(i);
 
             if (ImGui::TreeNode("Object", "Object %d", i))
             {
-                fz::Rigidbody& rb = sim.polygons[i].rb;
+                fz::Rigidbody& rb = world.polygons[i].rb;
 
                 ImGui::DragFloat("Moment of inertia", &rb.moment_of_inertia);
                 ImGui::SliderFloat("Restitution", &rb.restitution, 0.0f, 1.f);
@@ -130,13 +127,13 @@ namespace UI
                 ImGui::Text("Center(%.2f, %.2f) Sleeping(%d) Slide(%.2f)", rb.center.x, rb.center.y, rb.is_sleeping, rb.slide);
                 ImGui::Text("Angular(%.2f)", rb.angular_velocity);
                 ImGui::Text("Vel(%.2f, %.2f) VelLength(%.3f)", rb.velocity.x, rb.velocity.y, rb.velocity.Length());
-                for (auto& f : sim.polygons[i].vertices)
+                for (auto& f : world.polygons[i].vertices)
                 {
                     ImGui::Text("%.1f, %.1f", f.x, f.y);
                 }
                 if (ImGui::Button("Rotate"))
                 {
-                    sim.polygons[i].Rotate(angle);
+                    world.polygons[i].Rotate(angle);
                 }
 
                 ImGui::TreePop();

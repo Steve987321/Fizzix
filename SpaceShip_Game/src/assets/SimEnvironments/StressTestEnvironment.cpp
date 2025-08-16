@@ -2,7 +2,7 @@
 #include "StressTestEnvironment.h"
 
 #include "scripts/Sim.h"
-#include "Fizzix/FZSim.h"
+#include "Fizzix/FZWorld.h"
 #include "Fizzix/FZMath.h"
 
 namespace SimEnvironments
@@ -13,38 +13,41 @@ namespace SimEnvironments
 
     void StressTestEnvironmentLoad(size_t count)
     {
-        fz::Sim& sim = Sim::GetSim();
+        fz::World& world = Sim::GetWorld();
 
         time = 0;
-        square_vertices = fz::CreateSquare(10, 10);
+        square_vertices = fz::CreateSquare(20, 20);
 
-        sim.polygons.clear();
-        sim.springs.clear();
+        world.polygons.clear();
+        world.springs.clear();
         
-        std::array<Toad::Vec2f, 6> floor_vertices = fz::CreateSquare(1050, 50);
+        std::array<Toad::Vec2f, 6> floor_vertices = fz::CreateSquare(1050, 250);
         std::array<Toad::Vec2f, 6> wall_vertices = fz::CreateSquare(50, 1000);
 
         fz::Polygon floor({floor_vertices.begin(), floor_vertices.end()});
+        floor.rb.inv_mass = 1.f / 1000.f;
         floor.rb.is_static = true;
         floor.Translate({-500, 0});
 
         fz::Polygon wall_left({wall_vertices.begin(), wall_vertices.end()});
+        wall_left.rb.inv_mass = 1.f / 1000.f;
         wall_left.rb.is_static = true;
         wall_left.Translate({-500, -1000});
 
         fz::Polygon wall_right({wall_vertices.begin(), wall_vertices.end()});
+        wall_right.rb.inv_mass = 1.f / 1000.f;
         wall_right.rb.is_static = true;
         wall_right.Translate({500, -1000});
 
-        sim.AddPolygon(floor);
-        sim.AddPolygon(wall_right);
-        sim.AddPolygon(wall_left);
+        world.AddPolygon(floor);
+        world.AddPolygon(wall_right);
+        world.AddPolygon(wall_left);
     }
 
     void StressTestImGui(Sim &sim_script)
     {
-        fz::Sim& s = sim_script.GetSim();
-        ImGui::Begin("[sim] stress test menu");
+        fz::World& s = sim_script.GetWorld();
+        ImGui::Begin("[world] stress test menu");
         static bool shoot = false;
         ImGui::Checkbox("shoot", &shoot);
         float dt = Toad::Time::GetDeltaTime();
@@ -77,11 +80,6 @@ namespace SimEnvironments
         static int grid_size_y = 10;
         static int grid_space_x = 10;
         static int grid_space_y = 10;
-        if (ImGui::Button("Clear"))
-        {
-            Toad::DrawingCanvas::ClearVertices();
-            s.polygons.clear();
-        }
         
         ImGui::DragFloat("mass", &mass);
         ImGui::SliderFloat("friction", &friction, 0, 1);
@@ -105,7 +103,7 @@ namespace SimEnvironments
             if (time > shoot_delay)
             {
                 fz::Polygon p({square_vertices.begin(), square_vertices.end()});
-                p.Translate({(float)x * 10 + grid_space_x + grid_pos_offx, (float)y * 10 + grid_space_y + grid_pos_offy});
+                p.Translate({(float)x * 20 + grid_space_x + grid_pos_offx, (float)y * 20 + grid_space_y + grid_pos_offy});
                 x++;
                 if (x == grid_size_x)
                 {
@@ -121,7 +119,6 @@ namespace SimEnvironments
                 if (set_moi)
                     p.rb.moment_of_inertia = moi;
                 s.AddPolygon(p);
-				Toad::DrawingCanvas::AddVertexArray(square_vertices.size());
                 time = 0;
                 polygon_add_counter++;
             }

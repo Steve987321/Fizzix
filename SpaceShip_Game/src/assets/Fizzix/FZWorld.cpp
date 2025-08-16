@@ -1,148 +1,19 @@
 #include "framework/Framework.h"
-#include "FZSim.h"
+
+#include "FZWorld.h"
 
 #include "FZMath.h"
+#include "FZCollission.h"
 
 #include "scripts/Sim.h"
+
+#include <future> 
+#include <thread>
+#include <array>
 
 namespace fz
 {
     using namespace Toad; 
-
-    static bool LineLineIntersection(const Vec2f& p1, const Vec2f& p2, const Vec2f& q1, const Vec2f& q2, Vec2f& intersection)
-    {
-        Vec2f r = p2 - p1;
-        Vec2f s = q2 - q1;
-        
-        float rxs = r.Cross(s);
-        float qpxr = (q1 - p1).Cross(r);
-
-        // check if colinear 
-        if (fabs(rxs) < FLT_EPSILON) 
-            return false;
-
-        float t = (q1 - p1).Cross(s) / rxs;
-        float u = (q1 - p1).Cross(r) / rxs;
-
-        // intersects when t and u are between 0 and 1
-        if (t >= 0 && t <= 1 && u >= 0 && u <= 1)
-        {
-            intersection = p1 + r * t;
-            return true;
-        }
-
-        return false;
-    }
-
-    // find contacts between all edges of a and b 
-    static size_t ClipPolygon(const Polygon& a, const Polygon& b, Vec2f& contact)
-    {
-        size_t intersection_count = 0;
-        for (size_t i = 0; i < a.vertices.size(); i++)
-        {
-            size_t j = (i + 1) % a.vertices.size();
-            
-            Vec2f p1 = a.vertices[i];
-            Vec2f p2 = a.vertices[j];
-
-            for (size_t k = 0; k < b.vertices.size(); k++)
-            {
-                size_t l = (k + 1) % b.vertices.size();
-
-                Vec2f q1 = b.vertices[k];
-                Vec2f q2 = b.vertices[l];
-
-                Vec2f intersection;
-                if (LineLineIntersection(p1, p2, q1, q2, intersection))
-                {
-                    contact += intersection;
-                    intersection_count++;
-                }
-            }
-        }
-
-        contact /= intersection_count;
-
-        return intersection_count;
-    }
-
-    static void ProjectPolygon(const Polygon& p, const Vec2f& axis, float& min, float& max)
-    {
-        min = FLT_MAX;
-        max = -FLT_MAX; 
-        
-        for (const Vec2f& v : p.vertices)
-        {
-            float proj = dot(v, axis);
-
-            if (proj < min)
-                min = proj;
-
-            if (proj > max)
-                max = proj;
-        }
-    }
-
-    static bool SAT(const Polygon& a, const Polygon& b, Vec2f& normal, float& overlap, Vec2f& contact, size_t& contact_count)
-    {
-        float min_overlap = FLT_MAX;
-        Vec2f best_normal;
-        
-        for (const Vec2f& axis : a.normals)
-        {
-            float min_a, max_a, min_b, max_b;
-            ProjectPolygon(a, axis, min_a, max_a);
-            ProjectPolygon(b, axis, min_b, max_b);
-
-            if (max_a < min_b || max_b < min_a)
-                return false;
-
-            float ab_overlap = std::min(max_a - min_b, max_b - min_a);
-            if (ab_overlap < min_overlap)
-            {
-                min_overlap = ab_overlap;
-                best_normal = axis;
-            }
-        }
-        
-        for (const Vec2f& axis : b.normals)
-        {
-            float min_a, max_a, min_b, max_b;
-            ProjectPolygon(a, axis, min_a, max_a);
-            ProjectPolygon(b, axis, min_b, max_b);
-
-            if (max_a < min_b || max_b < min_a)
-                return false;
-
-            float ab_overlap = std::min(max_a - min_b, max_b - min_a);
-            if (ab_overlap < min_overlap)
-            {
-                min_overlap = ab_overlap;
-                best_normal = axis;
-            }
-        }
-        
-        // check facing direction and flip if needed
-        Vec2f ab = b.rb.center - a.rb.center;
-        if (ab.Dot(best_normal) < 0)
-        {
-            best_normal = -best_normal;
-        }
-    
-        normal = best_normal;
-        overlap = min_overlap;
-    
-        // get contact point 
-        contact_count = ClipPolygon(a, b, contact);
-        
-        if (contact_count == 0)
-        {
-            // fallback
-            contact = (a.rb.center + b.rb.center) * 0.5f;
-        }
-    
-        return true;
-    }
 
     static void Resolve(Rigidbody& a, Rigidbody& b, const Vec2f& contact, const Vec2f& normal, float overlap)
     {
@@ -166,6 +37,9 @@ namespace fz
 
         Vec2f impulse = normal * j;
 
+        DrawingCanvas::DrawArrow(contact, normal);
+        DrawingCanvas::DrawArrow(contact, impulse);
+
         a.velocity -= impulse * a.inv_mass;
         b.velocity += impulse * b.inv_mass;
 
@@ -185,7 +59,7 @@ namespace fz
         // b.velocity -= vel_rot_diff * grip;
         // b.angular_velocity *= 0.985f;
 
-        Vec2f correction = normal * (overlap);
+        Vec2f correction = normal * (overlap * 0.5f);
         // DrawText("CORRECTING: {} {}", correction.x, correction.y);
         
         // apply corection and also check for resting
@@ -243,8 +117,8 @@ namespace fz
     //
     // SWEEP AND PRUNE USING X AXIS 
     // 
+    // This will also immediately solve 
     // #TODO: Springs won't work, they store index 
-
     static bool SortByLeftAxis(const Polygon& a, const Polygon& b)
     {
         return a.aabb.min.x < b.aabb.min.x;
@@ -288,22 +162,123 @@ namespace fz
         }
     }
 
-    void Sim::Update(float dt)
+    //
+    // SWEEP AND PRUNE MULTITHREADED 
+    //
+
+    struct CollissionPair
+    {
+        Polygon* a;
+        Polygon* b;
+
+        // SAT results 
+        Vec2f normal; 
+        Vec2f contact;
+        float overlap;
+        
+        char pad[24];
+    };
+
+    static std::vector<CollissionPair> collission_pairs;
+    static std::vector<std::future<void>> workers;
+    static std::mutex m;
+
+    static void SweepAndPrunePart(std::vector<Polygon>& polygons, size_t start, size_t end)
+    {           
+        CollissionPair p;
+
+        for (size_t i = start; i < end; i++)
+        {
+            Polygon& a = polygons[i];
+
+            for (size_t j = i + 1; j < polygons.size(); j++)
+            {
+                Polygon& b = polygons[j];
+
+                if (a.rb.is_static && b.rb.is_static)
+                    continue;
+                if (a.rb.is_sleeping && b.rb.is_sleeping)
+                    continue;
+                if (a.rb.is_sleeping && b.rb.is_static)
+                    continue;
+                
+                if (b.aabb.min.x > a.aabb.max.x)
+                    break;
+                
+                size_t contact_count = 0;
+                bool collide = SAT(a, b, p.normal, p.overlap, p.contact, contact_count);
+                if (collide)
+                {
+                    p.a = &a;
+                    p.b = &b;
+                    std::unique_lock lock(m);
+                    collission_pairs.emplace_back(p);
+                }
+            }
+        }
+    }
+
+    static void SweepAndPruneMT(std::vector<Polygon>& polygons, unsigned worker_count = 0)
+    {
+        std::ranges::sort(polygons, SortByLeftAxis);
+
+        if (!worker_count)
+            worker_count = std::thread::hardware_concurrency() / 2;
+
+        size_t base = polygons.size() / worker_count;
+        size_t remainder = polygons.size() % worker_count;
+        // LOGDEBUGF("poly:{} base:{} rema:{} work:{}", polygons.size(), base, remainder, worker_count);
+
+        size_t start = 0;
+        size_t end = start + base;
+
+        workers.clear();
+        collission_pairs.clear();
+
+        for (unsigned i = 0; i < worker_count; i++)
+        {
+            size_t end = start + base + (i < remainder ? 1 : 0);
+            if (start >= end) // in case where worker_count > polygons.size()
+                break;
+
+            workers.emplace_back(std::async(SweepAndPrunePart, std::ref(polygons), start, end));
+            start = end;
+        }
+
+        for (auto& worker : workers)
+            worker.get();
+
+        for (auto& pair : collission_pairs)
+        {
+            Resolve(pair.a->rb, pair.b->rb, pair.contact, pair.normal, pair.overlap); 
+        }
+    }
+
+    World::World()
+    {
+        ResetRenderingState();
+    }
+
+    void World::Update(float dt)
     {
         for (Spring& spr : springs)
         {
             spr.Update(dt);
         }
 
-        // BruteForce(polygons);
-        SweepAndPrune(polygons);
+        BruteForce(polygons);
+        // SweepAndPrune(polygons);
+        // SweepAndPruneMT(polygons, 2);
 
-        for (Polygon& p : polygons)
-        {
+        for (int i = 0; i < polygons.size(); i++)
+        {   
+            Polygon& p = polygons[i];
+
             if (p.rb.is_static || p.rb.is_sleeping)
             {
                 p.rb.velocity = Vec2f{0, 0};
                 p.rb.angular_velocity = 0.f;
+                UpdatePolygonVertices(i);
                 continue;
             }
 
@@ -315,17 +290,36 @@ namespace fz
             p.UpdateCentroid();
             p.Translate(movement);
             p.Rotate(p.rb.angular_velocity * dt);
+
+            UpdatePolygonVertices(i);
         }
     }
 
-    fz::Polygon& Sim::AddPolygon(fz::Polygon &polygon)
+    void World::UpdatePolygonVertices(uint32_t polygon_index)
     {
-        polygon.sim = this;
+        const Polygon& p = polygons[polygon_index];
+        float mass_col = (uint8_t)p.rb.inv_mass * 100;
+        Color color(255, mass_col, mass_col, 255);
+
+        for (int j = 0; j < p.vertices.size(); j++)
+        {
+            sf::Vertex v;
+            v.position = p.vertices[j];
+            v.color = color;
+            dc.ModifyVertex(polygon_index, j, v);
+        }
+    }
+
+
+    fz::Polygon& World::AddPolygon(fz::Polygon& polygon)
+    {
+        dc.AddVertexArray(polygon.vertices.size());
+        polygon.world = this;
         polygons.emplace_back(polygon);
         return polygons.back();
     }
 
-    fz::Spring& Sim::AddSpring(Polygon &start, Polygon &end, const Vec2f &rel_start, const Vec2f rel_end)
+    fz::Spring& World::AddSpring(Polygon &start, Polygon &end, const Vec2f &rel_start, const Vec2f rel_end)
     {
         fz::Spring spring;         
         spring.start_rb = &start.rb;
@@ -346,4 +340,11 @@ namespace fz
         end.attached_spring_points.emplace_back(springs.size() - 1, true);
         return springs.back();
     }
+
+    void World::ResetRenderingState()
+    {
+	    dc.ClearVertices();
+    }
 }
+
+

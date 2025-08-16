@@ -60,7 +60,7 @@ void TVMMenu(VM& vm, bool& run_vm, char* source)
 
 	ImGui::BeginChild("VM options", {command_menu_window_size.x / 2.f - 10.f, command_menu_window_size.y});
 
-	ImGui::BeginDisabled(!Toad::begin_play);
+	ImGui::BeginDisabled(!Toad::IsBeginPlay());
 	if (ImGui::Button("Compile & Run"))
 	{
 		bytecodes.clear();

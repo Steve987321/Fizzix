@@ -1,6 +1,6 @@
 #include "framework/Framework.h"
 #include "Sim.h"
-#include "Fizzix/FZSim.h"
+#include "Fizzix/FZWorld.h"
 #include "Fizzix/FZMath.h"
 
 #include "Toot/Compiler/Compiler.h"
@@ -22,7 +22,7 @@
 using namespace Toad;
 
 static VM vm;
-static fz::Sim sim;
+static fz::World world;
 static bool run_vm = false;
 
 static bool lmouse_released = false;
@@ -53,14 +53,14 @@ static void OnMouseRelease(sf::Mouse::Button mouse)
 		rmouse_released = true; 
 }
 
-fz::Sim &Sim::GetSim()
+fz::World& Sim::GetWorld()
 {
-    return sim;
+    return world;
 }
 
-void Sim::SetDefaultScene(fz::Sim &sim)
+void Sim::SetDefaultWorld(fz::World& world)
 {
-	DrawingCanvas::ClearVertices();
+	world.ResetRenderingState();
 
 	std::array<Vec2f, 6> player_vertices = fz::CreateSquare(30, 50);
 	std::array<Vec2f, 6> floor_vertices = fz::CreateSquare(100000, 500);
@@ -76,11 +76,8 @@ void Sim::SetDefaultScene(fz::Sim &sim)
 	floor.Translate({-50, 0});
 	floor.rb.is_static = true;
 	
-	sim.AddPolygon(sim_player);
-	sim.AddPolygon(floor);
-
-	DrawingCanvas::AddVertexArray(sim_player.vertices.size());
-	DrawingCanvas::AddVertexArray(floor.vertices.size());
+	world.AddPolygon(sim_player);
+	world.AddPolygon(floor);
 }
 
 void Sim::OnStart(Object* obj)
@@ -96,7 +93,7 @@ void Sim::OnStart(Object* obj)
 	Mouse::ShouldCaptureMouse(true);
 	Mouse::SetVisible(true);
 
-	sim = fz::Sim();
+	world = fz::World();
 	vm = VM();
 
 	// use the sim lib library 
@@ -111,7 +108,7 @@ void Sim::OnStart(Object* obj)
 	add_potential_square = false;
 	run_vm = false;
 	
-	SetDefaultScene(sim);
+	SetDefaultWorld(world);
 
 	Input::AddMousePressCallback(OnMousePress);
 	Input::AddMouseReleaseCallback(OnMouseRelease);
@@ -123,7 +120,7 @@ void Sim::OnUpdate(Object* obj)
 
 	Camera* cam = Camera::GetActiveCamera();
 	if (cam)
-		cam->SetPosition(sim.polygons[0].rb.center);
+		cam->SetPosition(world.polygons[0].rb.center);
 
 	Vec2f world_mouse = Screen::ScreenToWorld(Mouse::GetPosition(), *Camera::GetActiveCamera());
 	
@@ -134,9 +131,9 @@ void Sim::OnUpdate(Object* obj)
 	static Vec2f rel_prev {};
 	
 	Timer timer(true);
-	for (int i = 0; i < sim.polygons.size(); i++)
+	for (int i = 0; i < world.polygons.size(); i++)
 	{
-		fz::Polygon& curr_polygon = sim.polygons[i];
+		fz::Polygon& curr_polygon = world.polygons[i];
 
 		if (interact_with_mouse)
 		{
@@ -155,11 +152,11 @@ void Sim::OnUpdate(Object* obj)
 					if (i_prev != i)
 					{
 						add_potential_spring = false;
-						fz::Polygon& start_polygon = sim.polygons[i_prev];
+						fz::Polygon& start_polygon = world.polygons[i_prev];
 						fz::Polygon& end_polygon = curr_polygon;
 						Vec2f end_rel = world_mouse - end_polygon.rb.center;
 	
-						fz::Spring& spr = sim.AddSpring(start_polygon, end_polygon, rel_prev, end_rel);
+						fz::Spring& spr = world.AddSpring(start_polygon, end_polygon, rel_prev, end_rel);
 						spr.stiffness = 1.f;
 					}
 				}
@@ -180,9 +177,7 @@ void Sim::OnUpdate(Object* obj)
 					std::array<Vec2f, 6> square_vertices = fz::CreateSquare(square_size.x, square_size.y);
 					fz::Polygon p({square_vertices.begin(), square_vertices.end()});
 					p.Translate(potential_square_pos);
-					sim.AddPolygon(p);
-					
-					DrawingCanvas::AddVertexArray(square_vertices.size());
+					world.AddPolygon(p);
 				}
 			}
 		}
@@ -192,26 +187,16 @@ void Sim::OnUpdate(Object* obj)
 		
 		if (show_aabb)
 			DrawingCanvas::DrawRect(curr_polygon.aabb.min, curr_polygon.aabb.max);
-
-		float mass_col = (uint8_t)curr_polygon.rb.inv_mass * 100;
-		Color color(255, mass_col, mass_col, 255);
-		for (int j = 0; j < curr_polygon.vertices.size(); j++)
-		{
-			sf::Vertex v;
-			v.position = curr_polygon.vertices[j];
-			v.color = color;
-			DrawingCanvas::ModifyVertex(i, j, v);
-		}
 	}
 
-	// float drawing_canvas_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
+	float drawing_canvas_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
 	// DrawText("DrawingCanvas (No Springs): {}ms", drawing_canvas_time);
-	// DrawText("Toot: {}ms", vm_time);
+	// DrawText("VM: {}ms", vm_time);
 	// DrawText("Sim: {}ms", sim_time);
 	// DrawText("FixedUpdate: {}ms", fixed_time);
 
 	// int i = 0;
-	for (const fz::Spring& spr : sim.springs)
+	for (const fz::Spring& spr : world.springs)
 	{
 		Vec2f a = spr.start_rb->center + spr.start_rel;
 		Vec2f b = spr.end_rb->center + spr.end_rel;
@@ -239,7 +224,7 @@ void Sim::OnFixedUpdate(Object* obj)
 	if (!pause_sim)
 	{
 		Timer timer(true);
-		sim.Update(Time::GetFixedDeltaTime());
+		world.Update(Time::GetFixedDeltaTime());
 		sim_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
 	}
 
@@ -256,13 +241,13 @@ void Sim::OnFixedUpdate(Object* obj)
 
 void Sim::OnRender(Object* obj, sf::RenderTarget& target) 
 {
-	DrawingCanvas::DrawVertices(target, sf::PrimitiveType::TriangleStrip);
+	world.dc.DrawVertices(target, sf::PrimitiveType::TriangleStrip);
+	world.dc.DrawBuffers(target);
 }
 
 void Sim::ExposeVars()
 {
 	Script::ExposeVars();
-
 }
 
 #ifdef TOAD_EDITOR

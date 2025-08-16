@@ -3,14 +3,13 @@
 #include "FZPolygon.h"
 #include "FZMath.h"
 
-#include "FZSim.h"
+#include "FZWorld.h"
 
 namespace fz
 {
     std::array<Toad::Vec2f, 6> CreateSquare(float size_x, float size_y)
     {
         return CreateSquare({0, 0}, {size_x, size_y});
-        // return std::array<Toad::Vec2f, 6>({{0, size_y}, {size_x, size_y}, {size_x, 0}, {0, size_y}, {size_x, 0},  {0, 0}});
     }
 
     std::array<Toad::Vec2f, 6> CreateSquare(const Toad::Vec2f& start, const Toad::Vec2f& end)
@@ -30,12 +29,12 @@ namespace fz
     void Polygon::UpdateNormals()
     {
         normals.clear();
-        int n = vertices.size();
-        for (int i = 0; i < n; i++)
+        size_t n = vertices.size(); 
+        for (size_t i = 0; i < n; i++)
         {
             Toad::Vec2f edge = vertices[(i + 1) % n] - vertices[i];
             Toad::Vec2f normal(-edge.y, edge.x); 
-            normals.push_back(normalize(normal));
+            normals.push_back(normal.Normalize());
         }
     }
 
@@ -65,9 +64,9 @@ namespace fz
         {
             Toad::Vec2f* v = nullptr;
             if (is_end)
-                v = &sim->springs[i].end_rel;
+                v = &world->springs[i].end_rel;
             else 
-                v = &sim->springs[i].start_rel;
+                v = &world->springs[i].start_rel;
 
             float x = v->x;
             v->x = x * c - v->y * s;

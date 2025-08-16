@@ -15,7 +15,7 @@ namespace fz
 
         Toad::Vec2f start_pos = start_rb->center + start_rel;
         Toad::Vec2f end_pos = end_rb->center + end_rel;
-        Toad::Vec2f dir_norm = normalize(end_pos - start_pos);
+        Toad::Vec2f dir_norm = (end_pos - start_pos).Normalize();
 
         if (target_len != 0)
         {

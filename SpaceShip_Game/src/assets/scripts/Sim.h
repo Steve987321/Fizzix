@@ -19,24 +19,26 @@ inline void DrawText(std::string_view txt, T... args)
 
 namespace fz
 {
-	class Sim;
+	class World;
 }
 
+/**
+ * @brief Handles the everything.
+ * Uses the drawing canvas for drawing
+ */
 class GAME_API Sim : public Toad::Script
 {
 public:
 	SCRIPT_CONSTRUCT(Sim)
     
-	static fz::Sim& GetSim();
-	static void SetDefaultScene(fz::Sim& sim);
+	static fz::World& GetWorld();
+	static void SetDefaultWorld(fz::World& world);
 
 	void OnStart(Toad::Object* obj) override;
 	void OnUpdate(Toad::Object* obj) override;
 	void OnFixedUpdate(Toad::Object* obj) override;
 	void OnRender(Toad::Object* obj, sf::RenderTarget& target) override;
 	void ExposeVars() override;
-
-	void OnShowAABBToggle();
 
 	bool pause_sim = false;
 	bool env_car_loaded = false;

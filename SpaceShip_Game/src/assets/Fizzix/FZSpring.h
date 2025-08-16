@@ -1,5 +1,7 @@
 #pragma once
+
 #include "FZRigidbody.h"
+#include "engine/Types.h"
 
 namespace fz
 {
