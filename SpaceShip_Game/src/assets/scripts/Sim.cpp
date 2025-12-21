@@ -266,9 +266,27 @@ void Sim::ExposeVars()
 // #define TOAD_EDITOR // for intellisense in vscode 
 
 #if defined(TOAD_EDITOR) || !defined(NDEBUG)
+
+static void AddTestBuildMsg()
+{
+    ImDrawList* draw = ImGui::GetForegroundDrawList();
+    ImVec2 pos = {ImGui::GetWindowSize()};
+    const char* msg = "THIS IS A TEST BUILD - BUGS/CRASHES EXPECTED";
+    ImVec2 text_size = ImGui::CalcTextSize(msg);
+    pos.x /= 2.f;
+    pos.x -= text_size.x / 2.f;
+    pos.y = 50.f;
+
+    draw->AddText(pos, IM_COL32(255, 0, 0, 255), msg);
+}
+
 void Sim::OnImGui(Object* obj,const UICtx&  ctx)
 {
 	UI_APPLY_CTX(ctx);
+
+#ifndef TOAD_EDITOR
+    AddTestBuildMsg();
+#endif 
 
 	static char source[1024];
 
