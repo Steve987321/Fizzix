@@ -4,3 +4,9 @@ bin
 bin-intermediate
 build/
 packaged_game/
+*.vcxproj
+*.filters
+*.user
+*.sln
+*.txt
+/.vs/SpaceShip
