@@ -4,6 +4,8 @@
       "vendor/imgui/imgui_draw.cpp"
       "vendor/imgui/imgui_tables.cpp"
       "vendor/imgui/imgui_widgets.cpp"
+      "vendor/implot/implot_items.cpp"
+      "vendor/implot/implot.cpp"
       "vendor/sfml-imgui/imgui-SFML.cpp"
         "SpaceShip_Game/src/assets/Fizzix/FZCollission.cpp"
         "SpaceShip_Game/src/assets/Fizzix/FZCollission.h"
