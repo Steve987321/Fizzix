@@ -1,5 +1,6 @@
 #include "framework/Framework.h"
 #include "FZMath.h"
+#include "FZRigidbody.h"
 #include "FZSpring.h"
 
 namespace fz
@@ -19,8 +20,8 @@ namespace fz
 
         if (target_len != 0)
         {
-            float d1 = dist(start_pos, end_pos); // * 0.9f;
-            float correct = target_len - d1;
+            len = dist(start_pos, end_pos); // * 0.9f;
+            float correct = target_len - len;
             Toad::Vec2f start_pos_a = start_rb->center + start_rel;
             Toad::Vec2f end_pos_a = ((end_pos + Toad::Vec2f(-dir_norm * correct / 2.f)) + start_pos_a + dir_norm * correct / 2.f) / 2.f;
             float d = dist(start_pos_a, end_pos_a); // * 0.9f;
