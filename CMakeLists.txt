@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 
-set(PREMAKE_BUILD_TYPES "Release" "Debug" "Dev" "DevDebug")
+set(PREMAKE_BUILD_TYPES "Release" "Debug" "Dev" "DevDebug" "Test")
 get_property(multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(multi_config)
   set(CMAKE_CONFIGURATION_TYPES "${PREMAKE_BUILD_TYPES}" CACHE STRING "list of supported configuration types" FORCE)
@@ -27,6 +27,8 @@ set(CMAKE_C_FLAGS_DEV "")
 set(CMAKE_CXX_FLAGS_DEV "")
 set(CMAKE_C_FLAGS_DEVDEBUG "")
 set(CMAKE_CXX_FLAGS_DEVDEBUG "")
+set(CMAKE_C_FLAGS_TEST "")
+set(CMAKE_CXX_FLAGS_TEST "")
 
 project("SpaceShip")
 include(SpaceShip_Game/SpaceShip_Game.cmake)

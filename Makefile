@@ -20,6 +20,9 @@ else ifeq ($(config),dev)
 else ifeq ($(config),devdebug)
   SpaceShip_Game_config = devdebug
 
+else ifeq ($(config),test)
+  SpaceShip_Game_config = test
+
 else
   $(error "invalid configuration $(config)")
 endif
@@ -47,6 +50,7 @@ help:
 	@echo "  debug"
 	@echo "  dev"
 	@echo "  devdebug"
+	@echo "  test"
 	@echo ""
 	@echo "TARGETS:"
 	@echo "   all (default)"

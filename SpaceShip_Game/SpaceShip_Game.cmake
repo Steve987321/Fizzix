@@ -4,8 +4,6 @@
       "vendor/imgui/imgui_draw.cpp"
       "vendor/imgui/imgui_tables.cpp"
       "vendor/imgui/imgui_widgets.cpp"
-      "vendor/implot/implot_items.cpp"
-      "vendor/implot/implot.cpp"
       "vendor/sfml-imgui/imgui-SFML.cpp"
         "SpaceShip_Game/src/assets/Fizzix/FZCollission.cpp"
         "SpaceShip_Game/src/assets/Fizzix/FZCollission.h"
@@ -110,11 +108,11 @@ target_compile_options("SpaceShip_Game" PRIVATE
   $<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:-m64>
   $<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:-O2>
   $<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:-fPIC>
-  $<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:-std=c++20>
+  $<$<AND:$<CONFIG:Release>,$<COMPILE_LANGUAGE:CXX>>:-std=c++23>
 )
 if(CMAKE_BUILD_TYPE STREQUAL Release)
   set_target_properties("SpaceShip_Game" PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 23
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     POSITION_INDEPENDENT_CODE True
@@ -173,11 +171,11 @@ target_compile_options("SpaceShip_Game" PRIVATE
   $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:-O0>
   $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:-fPIC>
   $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:-g>
-  $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:-std=c++20>
+  $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:CXX>>:-std=c++23>
 )
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   set_target_properties("SpaceShip_Game" PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 23
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     POSITION_INDEPENDENT_CODE True
@@ -236,11 +234,11 @@ target_compile_options("SpaceShip_Game" PRIVATE
   $<$<AND:$<CONFIG:Dev>,$<COMPILE_LANGUAGE:CXX>>:-m64>
   $<$<AND:$<CONFIG:Dev>,$<COMPILE_LANGUAGE:CXX>>:-O2>
   $<$<AND:$<CONFIG:Dev>,$<COMPILE_LANGUAGE:CXX>>:-fPIC>
-  $<$<AND:$<CONFIG:Dev>,$<COMPILE_LANGUAGE:CXX>>:-std=c++20>
+  $<$<AND:$<CONFIG:Dev>,$<COMPILE_LANGUAGE:CXX>>:-std=c++23>
 )
 if(CMAKE_BUILD_TYPE STREQUAL Dev)
   set_target_properties("SpaceShip_Game" PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 23
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     POSITION_INDEPENDENT_CODE True
@@ -300,11 +298,74 @@ target_compile_options("SpaceShip_Game" PRIVATE
   $<$<AND:$<CONFIG:DevDebug>,$<COMPILE_LANGUAGE:CXX>>:-O0>
   $<$<AND:$<CONFIG:DevDebug>,$<COMPILE_LANGUAGE:CXX>>:-fPIC>
   $<$<AND:$<CONFIG:DevDebug>,$<COMPILE_LANGUAGE:CXX>>:-g>
-  $<$<AND:$<CONFIG:DevDebug>,$<COMPILE_LANGUAGE:CXX>>:-std=c++20>
+  $<$<AND:$<CONFIG:DevDebug>,$<COMPILE_LANGUAGE:CXX>>:-std=c++23>
 )
 if(CMAKE_BUILD_TYPE STREQUAL DevDebug)
   set_target_properties("SpaceShip_Game" PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 23
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS NO
+    POSITION_INDEPENDENT_CODE True
+    INTERPROCEDURAL_OPTIMIZATION False
+  )
+endif()
+if(CMAKE_BUILD_TYPE STREQUAL Test)
+  set_target_properties("SpaceShip_Game" PROPERTIES
+    OUTPUT_NAME "SpaceShip_Game"
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../bin/Test-macosx-x86_64
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../bin/Test-macosx-x86_64
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../bin/Test-macosx-x86_64
+  )
+endif()
+if(APPLE)
+find_library(OpenGL_FRAMEWORK OpenGL)
+find_library(Cocoa_FRAMEWORK Cocoa)
+find_library(IOKit_FRAMEWORK IOKit)
+find_library(CoreVideo_FRAMEWORK CoreVideo)
+endif()
+target_include_directories("SpaceShip_Game" PRIVATE
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../../../Steve987321/Engine2D/engine/src>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../../../Steve987321/Engine2D/vendor>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../../../Steve987321/Engine2D/vendor/magic_enum/include>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../../../Steve987321/Engine2D/vendor/imgui>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../../../Steve987321/Engine2D/vendor/SFML-3.0.0/include>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../../../Steve987321/Engine2D/vendor/json/include>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/src>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/src/assets>
+)
+target_compile_definitions("SpaceShip_Game" PRIVATE
+  $<$<CONFIG:Test>:_DEBUG>
+  $<$<CONFIG:Test>:GAME_IS_EXPORT>
+)
+target_link_directories("SpaceShip_Game" PRIVATE
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../../../Steve987321/Engine2D/bin/Release-macosx-x86_64>
+  $<$<CONFIG:Test>:${CMAKE_CURRENT_SOURCE_DIR}/SpaceShip_Game/../vendor/SFML-3.0.0/lib>
+)
+target_link_libraries("SpaceShip_Game"
+  $<$<CONFIG:Test>:Engine>
+  $<$<CONFIG:Test>:${OpenGL_FRAMEWORK}>
+  $<$<CONFIG:Test>:${Cocoa_FRAMEWORK}>
+  $<$<CONFIG:Test>:${IOKit_FRAMEWORK}>
+  $<$<CONFIG:Test>:${CoreVideo_FRAMEWORK}>
+  $<$<CONFIG:Test>:sfml-system>
+  $<$<CONFIG:Test>:sfml-window>
+  $<$<CONFIG:Test>:sfml-graphics>
+  $<$<CONFIG:Test>:sfml-audio>
+)
+target_compile_options("SpaceShip_Game" PRIVATE
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:C>>:-m64>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:C>>:-O2>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:C>>:-fPIC>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:C>>:-g>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:CXX>>:-m64>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:CXX>>:-O2>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:CXX>>:-fPIC>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:CXX>>:-g>
+  $<$<AND:$<CONFIG:Test>,$<COMPILE_LANGUAGE:CXX>>:-std=c++23>
+)
+if(CMAKE_BUILD_TYPE STREQUAL Test)
+  set_target_properties("SpaceShip_Game" PROPERTIES
+    CXX_STANDARD 23
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     POSITION_INDEPENDENT_CODE True

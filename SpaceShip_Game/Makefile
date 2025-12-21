@@ -49,7 +49,7 @@ TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
 OBJDIR = ../bin-intermediate/Release-macosx-x86_64
 DEFINES += -DNDEBUG -D_USRDLL -DGAME_IS_EXPORT
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++20
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++23
 
 else ifeq ($(config),debug)
 TARGETDIR = ../bin/Debug-macosx-x86_64
@@ -57,7 +57,7 @@ TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
 OBJDIR = ../bin-intermediate/Debug-macosx-x86_64
 DEFINES += -D_DEBUG -DGAME_IS_EXPORT
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -fPIC -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -fPIC -g -std=c++20
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -fPIC -g -std=c++23
 
 else ifeq ($(config),dev)
 TARGETDIR = ../bin/Dev-macosx-x86_64
@@ -65,7 +65,7 @@ TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
 OBJDIR = ../bin-intermediate/Dev-macosx-x86_64
 DEFINES += -DNDEBUG -D_USRDLL -DGAME_IS_EXPORT -DTOAD_EDITOR
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++20
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -std=c++23
 
 else ifeq ($(config),devdebug)
 TARGETDIR = ../bin/DevDebug-macosx-x86_64
@@ -73,7 +73,15 @@ TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
 OBJDIR = ../bin-intermediate/DevDebug-macosx-x86_64
 DEFINES += -D_DEBUG -DGAME_IS_EXPORT -DTOAD_EDITOR
 ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -fPIC -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -fPIC -g -std=c++20
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -fPIC -g -std=c++23
+
+else ifeq ($(config),test)
+TARGETDIR = ../bin/Test-macosx-x86_64
+TARGET = $(TARGETDIR)/libSpaceShip_Game.dylib
+OBJDIR = ../bin-intermediate/Test-macosx-x86_64
+DEFINES += -D_DEBUG -DGAME_IS_EXPORT
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -fPIC -g -std=c++23
 
 endif
 
