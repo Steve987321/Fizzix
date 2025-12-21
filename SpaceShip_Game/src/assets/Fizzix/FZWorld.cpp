@@ -51,6 +51,14 @@ namespace fz
         b.angular_velocity += torque_b / b.moment_of_inertia;
         // float grip = (a.friction + b.friction) / 2.f;
 
+        Vec2f perp = {-normal.y, normal.x};
+        a.angular_velocity -= torque_a / a.moment_of_inertia;
+        const float angular_velocity_factor = 10.f;
+        Vec2f vel_rot_diff = a.velocity - (perp * (a.angular_velocity * -angular_velocity_factor));
+        float grip = std::max(overlap, 1.f) * ((a.friction + b.friction) / 2.f);
+        a.velocity -= vel_rot_diff * grip;
+
+
         // Vec2f vel_rot_diff = a.velocity - diff_a.perpendicular() * (perp * (a.angular_velocity));
         // a.velocity += vel_rot_diff * grip;
         // a.angular_velocity *= 0.985f;
