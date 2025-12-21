@@ -7,9 +7,39 @@
 #include "SimEnvironments/RocketEnvironment.h"
 #include "scripts/Sim.h"
 
+#include "implot/implot.h"
+
 namespace UI
 {
+    constexpr static size_t history_size = 100;
+
+    struct ThrusterData
+    {
+        float thrust_history[history_size] = {};
+        size_t i = 0;
+    };
+
+    struct SpringData
+    {
+        float energy_history[history_size];
+        size_t i = 0;
+        void AddEnergy(float e)
+        {
+            for (int j = 0; j < history_size - 1; j++)
+            {
+                energy_history[j] = energy_history[j + 1];
+            }
+
+            energy_history[history_size - 1] = e;
+        }
+    };
+
+    static std::vector<ThrusterData> thrusters_data;
+    static std::vector<SpringData> springs_data;
     
+    static bool show_thruster_graphs = false; 
+    static bool show_spring_graphs = false; 
+
     void FizzixMenu(Sim& sim_script, char* source)
     { 
         using namespace Toad;
@@ -48,6 +78,75 @@ namespace UI
             SimEnvironments::RocketEnvironmentLoad();
         }
 
+        ImGui::Checkbox("Show Thruster Graphs", &show_thruster_graphs);
+        ImGui::Checkbox("Show Spring Energy Graphs", &show_spring_graphs);
+
+        // if (show_thruster_graphs)
+        // {
+        //     ImGui::Begin("thruster graphs");
+
+        //     thrusters_data.resize(world.thrusters.size());
+
+        //     for (size_t i = 0; i < world.thrusters.size(); i++)
+        //     {
+        //         const fz::Thruster& t = world.thrusters[i];
+        //         if (ImPlot::BeginPlot(std::to_string(t.id).c_str())) 
+        //         {
+        //             ImPlot::PlotLine("thrust", thrusters_data[i].thrust_history, 100);
+        //             ImPlot::EndPlot();
+        //         }
+        //     }   
+        
+
+        //     ImGui:End();
+        // }
+
+        if (show_spring_graphs)
+        {
+            ImGui::Begin("[Sim] spring graphs");
+
+            static float zoom = 1.5f;
+            static float zoom_inv = 1.f / zoom;
+            static bool show_target_line = true;
+            ImGui::Text("%zu", world.springs.size());
+            if (ImGui::SliderFloat("zoom factor", &zoom, 0.1f, 2.f))
+                zoom_inv = 1.f / zoom;
+
+            ImGui::Checkbox("show target line", &show_target_line);
+
+            // ensure same size 
+            springs_data.resize(world.springs.size());
+
+            ImPlotFlags plot_flags = ImPlotFlags_NoLegend | ImPlotFlags_NoTitle;
+            ImPlotAxisFlags axis_flags = ImPlotAxisFlags_NoDecorations;
+
+            for (size_t i = 0; i < world.springs.size(); i++)
+            {
+                ImGui::Text("spring (%zu)", i);
+                SpringData& data = springs_data[i];
+                const fz::Spring& s = world.springs[i];
+                data.AddEnergy(s.len);
+                ImGui::PushID(i);
+                if (ImPlot::BeginPlot("##springplot", {-1, 100}, plot_flags)) 
+                {
+                    ImPlot::SetupAxes(nullptr, nullptr, axis_flags, axis_flags);
+                    ImPlot::SetupAxesLimits(0, 100, s.target_len * zoom_inv, s.target_len * zoom, ImGuiCond_Always);
+
+                    if (show_target_line)
+                    {
+                        ImPlot::PushStyleColor(ImPlotCol_Line, {1, 1, 1, 0.3f});
+                        ImPlot::PlotInfLines("##ref", &s.target_len, 1, ImPlotInfLinesFlags_Horizontal);
+                        ImPlot::PopStyleColor();
+                    }
+                    
+                    ImPlot::PlotLine("##dist", springs_data[i].energy_history, 100);
+                    ImPlot::EndPlot();
+                }
+                ImGui::PopID();
+            }   
+
+            ImGui::End();
+        }
         if (ImGui::Button("Clear"))
         {
             world = fz::World();
@@ -118,7 +217,6 @@ namespace UI
 
             ImGui::PopID();
         }
-
         for (int i = 0; i < world.springs.size(); i++)
         {
             ImGui::PushID(i);
