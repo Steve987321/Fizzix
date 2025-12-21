@@ -17,6 +17,7 @@ namespace fz
         // Create a polygon based on vertex array, must be convex
         Polygon(const std::vector<Toad::Vec2f>& points);
 
+        size_t id = 0;
         std::vector<Toad::Vec2f> vertices;
         std::vector<Toad::Vec2f> normals;
         AABB aabb;
@@ -24,6 +25,7 @@ namespace fz
         // #TODO: sweep and prune breaks this 
         // springs attached to this polygon that need to be updated, hold spring index and whether its end(true) or start(false)
         std::vector<std::pair<size_t, bool>> attached_spring_points;
+        std::vector<size_t> attached_thruster_points;
 
         Rigidbody rb;
         World* world = nullptr;

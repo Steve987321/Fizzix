@@ -7,7 +7,7 @@ namespace fz
     public:
         void Update(float dt);
 
-        float angular_damping = 0.95f;
+        float angular_damping = 0.99f;
         float angular_velocity = 0;
         float moment_of_inertia = 1000.f;
         float restitution = 0.2f;

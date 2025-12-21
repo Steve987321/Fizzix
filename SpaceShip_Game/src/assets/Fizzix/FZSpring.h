@@ -15,8 +15,8 @@ namespace fz
 
         float min_len = 0.f;
         float target_len = 0.f;
-        float compression_damping = 1.f;
-        float rebound_damping = 1.f;
+        float compression_damping = .95f;
+        float rebound_damping = .95f;
         float rotation_force_factor = 20.f;
 
         // relative to center of rbs

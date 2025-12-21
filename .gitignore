@@ -2,3 +2,5 @@
 .DS_Store
 bin
 bin-intermediate
+build/
+packaged_game/

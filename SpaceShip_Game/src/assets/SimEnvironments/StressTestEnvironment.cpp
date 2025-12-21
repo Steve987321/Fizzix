@@ -9,7 +9,7 @@ namespace SimEnvironments
 {
     static float time = 0;
     static std::array<Toad::Vec2f, 6> square_vertices;
-    static std::array<float, 50> fps_data;
+    static std::array<float, 25> fps_data;
 
     void StressTestEnvironmentLoad(size_t count)
     {

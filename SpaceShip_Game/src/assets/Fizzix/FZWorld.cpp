@@ -265,6 +265,10 @@ namespace fz
         {
             spr.Update(dt);
         }
+        for (Thruster& thr : thrusters)
+        {
+            thr.Update(dt);
+        }
 
         BruteForce(polygons);
         // SweepAndPrune(polygons);
@@ -311,15 +315,23 @@ namespace fz
     }
 
 
-    fz::Polygon& World::AddPolygon(fz::Polygon& polygon)
+    size_t World::AddPolygon(fz::Polygon& polygon)
     {
         dc.AddVertexArray(polygon.vertices.size());
         polygon.world = this;
+        polygon.id = polygons.size();
         polygons.emplace_back(polygon);
-        return polygons.back();
+        return polygon.id;
     }
 
-    fz::Spring& World::AddSpring(Polygon &start, Polygon &end, const Vec2f &rel_start, const Vec2f rel_end)
+    void World::RemovePolygon(fz::Polygon &polygon)
+    {
+        polygons.erase(polygons.begin() + polygon.id);
+        for (size_t i = polygon.id; i < polygons.size(); i++)
+            polygons[i].id--;
+    }
+
+    fz::Spring& World::AddSpring(Polygon& start, Polygon& end, const Vec2f& rel_start, const Vec2f& rel_end)
     {
         fz::Spring spring;         
         spring.start_rb = &start.rb;
@@ -339,6 +351,24 @@ namespace fz
         start.attached_spring_points.emplace_back(springs.size() - 1, false);
         end.attached_spring_points.emplace_back(springs.size() - 1, true);
         return springs.back();
+    }
+
+    size_t World::AddThruster(Polygon& p, const Vec2f& rel)
+    {
+        return AddThruster(p.id, rel);
+    }
+
+    size_t World::AddThruster(size_t p_id, const Vec2f& rel)
+    {
+        fz::Thruster t;
+        t.world = this;
+        t.id = thrusters.size();
+        t.attached_polygon = p_id;
+        t.attached_rel_pos = rel;
+        t.SetDirection(180);
+        thrusters.push_back(t);
+
+        return t.id;
     }
 
     void World::ResetRenderingState()

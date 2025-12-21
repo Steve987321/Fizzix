@@ -18,6 +18,8 @@ namespace SimLib
 	VMRegister CESaveSpringStates(VM& vm, const std::vector<VMRegister>& args);
 	VMRegister CESetSpringDistanceFactor(VM& vm, const std::vector<VMRegister>& args);
 	VMRegister CEApplyGas(VM& vm, const std::vector<VMRegister>& args);
+
+    
 	
 	CPPLib GetSimLib();
 }

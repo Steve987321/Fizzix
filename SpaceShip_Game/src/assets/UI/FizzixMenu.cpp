@@ -4,6 +4,7 @@
 #include "SimEnvironments/CarEnvironment.h"
 #include "SimEnvironments/StressTestEnvironment.h"
 #include "SimEnvironments/SandBoxEnvironment.h"
+#include "SimEnvironments/RocketEnvironment.h"
 #include "scripts/Sim.h"
 
 namespace UI
@@ -36,7 +37,15 @@ namespace UI
         if (ImGui::Button("Load Sandbox"))
         {
             sim_script.env_car_loaded = false;
+            sim_script.env_stress_test_loaded = false;
             SimEnvironments::SandBoxEnvironmetLoad();
+        }
+
+        if (ImGui::Button("Load RocketScene"))
+        {
+            sim_script.env_car_loaded = false;
+            sim_script.env_stress_test_loaded = false;
+            SimEnvironments::RocketEnvironmentLoad();
         }
 
         if (ImGui::Button("Clear"))
@@ -84,6 +93,31 @@ namespace UI
             Time::SetTimeScale(scale);
         if (ImGui::Button("Set fixed DT"))
             Time::SetFixedDeltaTime(fdt);
+
+        for (int i = 0; i < world.thrusters.size(); i++)
+        {
+            ImGui::PushID(i);
+
+            if (ImGui::TreeNode("Thruster", "Thruster %d", i))
+            {
+                fz::Thruster& t = world.thrusters[i];
+
+                ImGui::Text("attached: (%llu)", t.attached_polygon);
+                ImGui::Text("thrust %f", t.power);
+                ImGui::DragFloat("max thrust", &t.max_power);
+                if (ImGui::DragFloat("direction (degrees)", &t.direction_deg))
+                {
+                    t.SetDirection(t.direction_deg);
+                }
+                
+                ImGui::DragFloat("rel pos x", &t.attached_rel_pos.x);
+                ImGui::DragFloat("rel pos y", &t.attached_rel_pos.y);
+
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
 
         for (int i = 0; i < world.springs.size(); i++)
         {

@@ -90,7 +90,6 @@ void Sim::OnStart(Object* obj)
 	txt_to_draw.clear();
 #endif 
 
-	Mouse::ShouldCaptureMouse(true);
 	Mouse::SetVisible(true);
 
 	world = fz::World();
@@ -190,10 +189,10 @@ void Sim::OnUpdate(Object* obj)
 	}
 
 	float drawing_canvas_time = timer.Elapsed<std::chrono::microseconds>() / 1000.f;
-	// DrawText("DrawingCanvas (No Springs): {}ms", drawing_canvas_time);
-	// DrawText("VM: {}ms", vm_time);
-	// DrawText("Sim: {}ms", sim_time);
-	// DrawText("FixedUpdate: {}ms", fixed_time);
+	DrawText("DrawingCanvas (No Springs): {}ms", drawing_canvas_time);
+	DrawText("VM: {}ms", vm_time);
+	DrawText("Sim: {}ms", sim_time);
+	DrawText("FixedUpdate: {}ms", fixed_time);
 
 	// int i = 0;
 	for (const fz::Spring& spr : world.springs)
@@ -201,6 +200,18 @@ void Sim::OnUpdate(Object* obj)
 		Vec2f a = spr.start_rb->center + spr.start_rel;
 		Vec2f b = spr.end_rb->center + spr.end_rel;
 		DrawingCanvas::DrawArrow(a, (b - a), 1.f);
+	}
+
+    for (const fz::Thruster& thr : world.thrusters)
+	{
+        const fz::Polygon& p = world.polygons[thr.attached_polygon];
+
+		Vec2f a = p.rb.center + thr.attached_rel_pos;
+		Vec2f b = a + thr.direction * thr.power;
+		Vec2f b2 = a + thr.direction;
+        Toad::Color c{255, 255, 0};
+		DrawingCanvas::DrawArrow(a, (b2 - a) * 10, 1.f, c);
+		DrawingCanvas::DrawArrow(a, (b - a) * 100, 1.f, c);
 	}
 
 	if (add_potential_spring && lmouse_released)

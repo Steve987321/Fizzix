@@ -73,6 +73,15 @@ namespace fz
             v->y = x * s + v->y * c;
         }
 
+        for (auto& i : attached_thruster_points)
+        {
+            Toad::Vec2f* v = &world->thrusters[i].attached_rel_pos;
+
+            float x = v->x;
+            v->x = x * c - v->y * s;
+            v->y = x * s + v->y * c;
+        }
+
         UpdateNormals();
         UpdateAABB();
     }
