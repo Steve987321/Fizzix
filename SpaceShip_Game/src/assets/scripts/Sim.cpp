@@ -3,6 +3,8 @@
 #include "Fizzix/FZWorld.h"
 #include "Fizzix/FZMath.h"
 
+#include "implot/implot.h"
+
 #include "Toot/Compiler/Compiler.h"
 #include "Toot/TVM/TVM.h"
 #include "Toot/Compiler/Parser.h" // op codes to string 
@@ -261,19 +263,13 @@ void Sim::ExposeVars()
 	Script::ExposeVars();
 }
 
-#ifdef TOAD_EDITOR
-void Sim::OnEditorUI(Object *obj, ImGuiContext *ctx)
-{
-	ImGui::SetCurrentContext(ctx);
-}
-#endif
-
 // #define TOAD_EDITOR // for intellisense in vscode 
 
 #if defined(TOAD_EDITOR) || !defined(NDEBUG)
-void Sim::OnImGui(Object* obj, ImGuiContext* ctx)
+void Sim::OnImGui(Object* obj,const UICtx&  ctx)
 {
-	ImGui::SetCurrentContext(ctx);
+	UI_APPLY_CTX(ctx);
+
 	static char source[1024];
 
     UI::FizzixMenu(*this, source);
