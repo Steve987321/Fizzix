@@ -10,3 +10,5 @@ packaged_game/
 *.sln
 *.txt
 /.vs/SpaceShip
+*.cmake
+Makefile
