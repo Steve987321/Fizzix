@@ -22,6 +22,7 @@ once
 int key_d = 3;
 int key_a = 0;
 int key_space = 57;
+float speed = 10.0;
 
 if (IsKeyDown(key_space) == 1)
 {
@@ -46,11 +47,11 @@ float gas = 0.0;
 
 if (IsKeyDown(key_d) == 1)
 {
-    gas = gas + 10.0;
+    gas = gas + speed;
 }
 if (IsKeyDown(key_a) == 1)
 {
-    gas = gas - 10.0;
+    gas = gas - speed;
 }
 
 CESetSpringDistanceFactor(spring_wheel_dist_factor);
