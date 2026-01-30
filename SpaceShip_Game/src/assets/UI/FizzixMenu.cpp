@@ -22,7 +22,6 @@ namespace UI
     struct SpringData
     {
         float energy_history[history_size];
-        size_t i = 0;
         void AddEnergy(float e)
         {
             for (int j = 0; j < history_size - 1; j++)
@@ -48,58 +47,44 @@ namespace UI
 
         fz::World& world = sim_script.GetWorld();
 
-        if (ImGui::Button("Load CarScene"))
+        if (ImGui::TreeNode("Test Scenes"))
         {
-            sim_script.env_car_loaded = true;
-            sim_script.env_stress_test_loaded = false;
-            SimEnvironments::CarEnvironmentLoad();
+            if (ImGui::Button("Load CarScene"))
+            {
+                sim_script.env_car_loaded = true;
+                sim_script.env_stress_test_loaded = false;
+                SimEnvironments::CarEnvironmentLoad();
 
-            // copy default script to source 
-            strncpy(source, SimEnvironments::car_controller_script, strlen(SimEnvironments::car_controller_script) + 1);
-        }
-        if (ImGui::Button("Load StressTest"))
-        {
-            sim_script.env_car_loaded = false;
-            sim_script.env_stress_test_loaded = true;
-            SimEnvironments::StressTestEnvironmentLoad(0);
+                // copy default script to source 
+                strncpy(source, SimEnvironments::car_controller_script, strlen(SimEnvironments::car_controller_script) + 1);
+            }
+            if (ImGui::Button("Load StressTest"))
+            {
+                sim_script.env_car_loaded = false;
+                sim_script.env_stress_test_loaded = true;
+                SimEnvironments::StressTestEnvironmentLoad(0);
+            }
+            if (ImGui::Button("Load Sandbox"))
+            {
+                sim_script.env_car_loaded = false;
+                sim_script.env_stress_test_loaded = false;
+                SimEnvironments::SandBoxEnvironmetLoad();
+            }
+            if (ImGui::Button("Load RocketScene"))
+            {
+                sim_script.env_car_loaded = false;
+                sim_script.env_stress_test_loaded = false;
+                SimEnvironments::RocketEnvironmentLoad();
+            }
+            ImGui::TreePop();
         }
 
-        if (ImGui::Button("Load Sandbox"))
-        {
-            sim_script.env_car_loaded = false;
-            sim_script.env_stress_test_loaded = false;
-            SimEnvironments::SandBoxEnvironmetLoad();
-        }
-
-        if (ImGui::Button("Load RocketScene"))
-        {
-            sim_script.env_car_loaded = false;
-            sim_script.env_stress_test_loaded = false;
-            SimEnvironments::RocketEnvironmentLoad();
-        }
-
-        ImGui::Checkbox("Show Thruster Graphs", &show_thruster_graphs);
         ImGui::Checkbox("Show Spring Energy Graphs", &show_spring_graphs);
+        if (ImGui::Button("Open Scene Editor"))
+        {
+        }
 
-        // if (show_thruster_graphs)
-        // {
-        //     ImGui::Begin("thruster graphs");
-
-        //     thrusters_data.resize(world.thrusters.size());
-
-        //     for (size_t i = 0; i < world.thrusters.size(); i++)
-        //     {
-        //         const fz::Thruster& t = world.thrusters[i];
-        //         if (ImPlot::BeginPlot(std::to_string(t.id).c_str())) 
-        //         {
-        //             ImPlot::PlotLine("thrust", thrusters_data[i].thrust_history, 100);
-        //             ImPlot::EndPlot();
-        //         }
-        //     }   
-        
-
-        //     ImGui:End();
-        // }
+        // ImGui::Checkbox("Use multiple threads", )
 
         if (show_spring_graphs)
         {
@@ -151,32 +136,12 @@ namespace UI
         {
             world = fz::World();
         }
-        if (!world.polygons.empty())
-        {
-            if (ImGui::Button("FORCE"))
-            {
-                world.polygons[0].rb.velocity += Vec2f{0, -10.f};
-            }
-            if (ImGui::Button("ANGULARA"))
-            {
-                // Sim::env_car_gas = -10.f;
-                world.polygons[1].rb.angular_velocity += 2.f;
-                // world.polygons[1].rb.angular_velocity += 2.f;
-            }if (ImGui::Button("ANGULARB"))
-            {
-                // Sim::env_car_gas = 10.f;
-                world.polygons[1].rb.angular_velocity -= 2.f;
-                // world.polygons[1].rb.angular_velocity -= 2.f;
-            }
-
-        }
 
         static float angle = 0;
         static float scale = 1.f;
         static float fdt = Time::GetFixedDeltaTime();
         ImGui::DragFloat("Angle", &angle);
         ImGui::Checkbox("Pause", &sim_script.pause_sim);
-        ImGui::DragFloat("SimGravity Y", &world.gravity.y);
         ImGui::DragFloat("Time scale", &scale, 0.05f);
         ImGui::DragFloat("Fixed time step", &fdt, 0.01f);
         ImGui::Checkbox("Show AABB", &sim_script.show_aabb);
